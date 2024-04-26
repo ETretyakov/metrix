@@ -22,7 +22,7 @@ func GaugeWidgetUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	val, err := strconv.ParseUint(value, 10, 64)
 	if err != nil {
 		log.Warn().Msg(fmt.Sprintf("[gauge] failed to parse value: %s", value))
-		w.WriteHeader(http.StatusConflict)
+		w.WriteHeader(http.StatusBadRequest)
 	}
 
 	db.MemStorage.Set("gauge", name, val)
