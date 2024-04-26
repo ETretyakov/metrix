@@ -23,6 +23,7 @@ func CounterWidgetUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Warn().Msg(fmt.Sprintf("[counter] failed to parse value: %s", value))
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	prevValue := db.MemStorage.Get("counter", name)
