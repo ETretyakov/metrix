@@ -18,19 +18,15 @@ func main() {
 
 	router.HandleFunc("/health", handlers.HealthHandler).
 		Methods(http.MethodGet)
-		// Headers("Content-Type", "text/plain")
-
-	router.HandleFunc("/update/gauge/{name}/{value}", handlers.GaugeWidgetUpdateHandler).
-		Methods(http.MethodPost)
-		// Headers("Content-Type", "text/plain")
 
 	router.HandleFunc("/update/counter/{name}/{value}", handlers.CounterWidgetUpdateHandler).
 		Methods(http.MethodPost)
-		// Headers("Content-Type", "text/plain")
+
+	router.HandleFunc("/update/gauge/{name}/{value}", handlers.GaugeWidgetUpdateHandler).
+		Methods(http.MethodPost)
 
 	router.HandleFunc("/update/{unkown}/{name}/{value}", handlers.UnknownMetricHandler).
 		Methods(http.MethodPost)
-		// Headers("Content-Type", "text/plain")
 
 	server := &http.Server{
 		Addr:         ":8080",

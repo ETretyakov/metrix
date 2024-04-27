@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/ETretyakov/metrix/internal/db"
+	"github.com/ETretyakov/metrix/internal/schemas"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
@@ -28,5 +30,12 @@ func GaugeWidgetUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	db.MemStorage.Set("gauge", name, val)
 
+	res := schemas.WidgetResponse{
+		Value: db.MemStorage.Get("counter", name),
+	}
+
+	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
+
+	json.NewEncoder(w).Encode(res)
 }

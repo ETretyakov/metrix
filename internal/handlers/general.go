@@ -13,6 +13,9 @@ func HealthHandler(w http.ResponseWriter, r *http.Request) {
 		Msg:    "I'm fine, thank you!",
 	}
 
+	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+
 	json.NewEncoder(w).Encode(res)
 }
 
