@@ -5,21 +5,21 @@ import "fmt"
 type WidgetType string
 
 const (
-	UNKNOWN        WidgetType = "unknown"
-	COUNTER_WIDGET WidgetType = "counter"
-	GAUGE_WIDGET   WidgetType = "gauge"
+	UnknownWidget WidgetType = "unknown"
+	CounterWidget WidgetType = "counter"
+	GaugeWidget   WidgetType = "gauge"
 )
 
 func ParseWidgetType(s string) (WidgetType, error) {
-	if s == string(COUNTER_WIDGET) {
-		return COUNTER_WIDGET, nil
+	if s == string(CounterWidget) {
+		return CounterWidget, nil
 	}
 
-	if s == string(GAUGE_WIDGET) {
-		return GAUGE_WIDGET, nil
+	if s == string(GaugeWidget) {
+		return GaugeWidget, nil
 	}
 
-	return UNKNOWN, fmt.Errorf("failed to parse widget type: %s", s)
+	return UnknownWidget, fmt.Errorf("failed to parse widget type: %s", s)
 }
 
 type Widget struct {

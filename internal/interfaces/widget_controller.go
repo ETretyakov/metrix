@@ -85,7 +85,7 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 	var widget domain.Widget
 
 	switch widgetType {
-	case domain.COUNTER_WIDGET:
+	case domain.CounterWidget:
 		widget, err = wc.WidgetInteractor.Increment(namespace, widgetType, name, val)
 	default:
 		widget, err = wc.WidgetInteractor.Update(namespace, widgetType, name, val)
