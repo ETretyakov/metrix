@@ -19,13 +19,13 @@ const (
 
 func SendMetric(
 	ctx context.Context,
-	baseUrl string,
+	baseURL string,
 	widgetType WidgetType,
 	name string,
 	value float64,
 ) error {
-	url := fmt.Sprintf("%s/update/%s/%s/%f", baseUrl, widgetType, name, value)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	url := fmt.Sprintf("%s/update/%s/%s/%f", baseURL, widgetType, name, value)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, http.NoBody)
 	if err != nil {
 		return fmt.Errorf("client.GetConn: %w", err)
 	}
@@ -38,14 +38,19 @@ func SendMetric(
 	if err != nil {
 		return fmt.Errorf("client.Do: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			return
+		}
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("client.ReadAll: %w", err)
 	}
 
-	if resp.StatusCode > 300 {
+	if resp.StatusCode > http.StatusIMUsed {
 		return fmt.Errorf("client.Response: status_code=%d body=%s", resp.StatusCode, body)
 	}
 

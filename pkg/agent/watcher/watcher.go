@@ -14,6 +14,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	stageLogKey       = "Stage"
+	stageLogWatchVal  = "reading-metrics"
+	stageLogReportVal = "reporting-metrics"
+)
+
 type Watcher struct {
 	mux         *sync.RWMutex
 	Metrics     map[string]float64
@@ -21,10 +27,10 @@ type Watcher struct {
 	RandomValue float64
 }
 
-func NewWatcher(config config.Config) *Watcher {
+func NewWatcher(cfg config.Config) *Watcher {
 	metrics := map[string]float64{}
 
-	for _, v := range config.Metrics {
+	for _, v := range cfg.Metrics {
 		metrics[v] = 0
 	}
 
@@ -44,7 +50,7 @@ func (w *Watcher) Start(ctx context.Context, interval time.Duration) {
 		select {
 		case <-ticker.C:
 			w.mux.Lock()
-			w.PollCount += 1
+			w.PollCount++
 			w.RandomValue = rand.Float64()
 
 			runtime.ReadMemStats(&stats)
@@ -55,13 +61,28 @@ func (w *Watcher) Start(ctx context.Context, interval time.Duration) {
 				field := reflect.Indirect(reflectValue).FieldByName(k)
 				switch field.Kind() {
 				case reflect.Uint32:
-					w.Metrics[k] = float64(field.Interface().(uint32))
+					val, ok := field.Interface().(uint32)
+					if !ok {
+						log.Warn().Caller().Str(stageLogKey, stageLogWatchVal).
+							Msg("failed to assert filetype uint32")
+					}
+					w.Metrics[k] = float64(val)
 				case reflect.Uint64:
-					w.Metrics[k] = float64(field.Interface().(uint64))
+					val, ok := field.Interface().(uint64)
+					if !ok {
+						log.Warn().Caller().Str(stageLogKey, stageLogWatchVal).
+							Msg("failed to assert filetype uint64")
+					}
+					w.Metrics[k] = float64(val)
 				case reflect.Float64:
-					w.Metrics[k] = field.Interface().(float64)
+					val, ok := field.Interface().(float64)
+					if !ok {
+						log.Warn().Caller().Str(stageLogKey, stageLogWatchVal).
+							Msg("failed to assert filetype float64")
+					}
+					w.Metrics[k] = val
 				default:
-					log.Warn().Caller().Str("Stage", "reading-metrics").
+					log.Warn().Caller().Str(stageLogKey, stageLogWatchVal).
 						Msg(fmt.Sprintf("unsupported metric field type: %s", field.Kind()))
 				}
 			}
@@ -73,7 +94,7 @@ func (w *Watcher) Start(ctx context.Context, interval time.Duration) {
 	}
 }
 
-func (w *Watcher) Report(ctx context.Context, baseUrl string, interval time.Duration) {
+func (w *Watcher) Report(ctx context.Context, baseURL string, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	for {
 		select {
@@ -83,22 +104,22 @@ func (w *Watcher) Report(ctx context.Context, baseUrl string, interval time.Dura
 				Msg(fmt.Sprintf("sending metrics: %+v", w))
 
 			for k, v := range w.Metrics {
-				err := client.SendMetric(ctx, baseUrl, client.GaugeType, k, v)
+				err := client.SendMetric(ctx, baseURL, client.GaugeType, k, v)
 				if err != nil {
-					log.Error().Err(err).Str("Stage", "reporting-metrics").
+					log.Error().Err(err).Str(stageLogKey, stageLogReportVal).
 						Msg(fmt.Sprintf("failed to report metrics: %s", err))
 				}
 			}
 
-			err := client.SendMetric(ctx, baseUrl, client.CounterType, "PollCount", w.PollCount)
+			err := client.SendMetric(ctx, baseURL, client.CounterType, "PollCount", w.PollCount)
 			if err != nil {
-				log.Error().Err(err).Str("Stage", "reporting-metrics").
+				log.Error().Err(err).Str(stageLogKey, stageLogReportVal).
 					Msg(fmt.Sprintf("failed to report PollCount metric: %s", err))
 			}
 
-			err = client.SendMetric(ctx, baseUrl, client.CounterType, "RandomValue", w.RandomValue)
+			err = client.SendMetric(ctx, baseURL, client.CounterType, "RandomValue", w.RandomValue)
 			if err != nil {
-				log.Error().Err(err).Str("Stage", "reporting-metrics").
+				log.Error().Err(err).Str(stageLogKey, stageLogReportVal).
 					Msg(fmt.Sprintf("failed to report RandomValue metric: %s", err))
 			}
 
