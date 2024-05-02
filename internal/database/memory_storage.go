@@ -22,7 +22,8 @@ func (s *MemoryStorage) Get(key string) (*float64, error) {
 
 	res, ok := s.s[key]
 	if !ok {
-		return nil, nil
+		val := float64(0)
+		return &val, nil
 	}
 
 	return &res, nil
