@@ -75,7 +75,7 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 	name := vars["name"]
 	value := vars["value"]
 
-	val, err := strconv.ParseUint(value, 10, 64)
+	val, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		wc.Logger.LogError("[ERROR] %s %s %s: %s\n", r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusBadRequest)

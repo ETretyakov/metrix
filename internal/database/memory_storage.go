@@ -5,20 +5,20 @@ import (
 )
 
 type MemoryStorage struct {
-	mux *sync.Mutex
-	s   map[string]uint64
+	mux *sync.RWMutex
+	s   map[string]float64
 }
 
 func NewStorage() *MemoryStorage {
 	return &MemoryStorage{
-		mux: &sync.Mutex{},
-		s:   make(map[string]uint64),
+		mux: &sync.RWMutex{},
+		s:   make(map[string]float64),
 	}
 }
 
-func (s *MemoryStorage) Get(key string) (*uint64, error) {
-	s.mux.Lock()
-	defer s.mux.Unlock()
+func (s *MemoryStorage) Get(key string) (*float64, error) {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
 
 	res, ok := s.s[key]
 	if !ok {
@@ -28,7 +28,7 @@ func (s *MemoryStorage) Get(key string) (*uint64, error) {
 	return &res, nil
 }
 
-func (s *MemoryStorage) Set(key string, value uint64) (*uint64, error) {
+func (s *MemoryStorage) Set(key string, value float64) (*float64, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 

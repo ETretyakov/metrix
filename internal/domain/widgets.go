@@ -26,5 +26,5 @@ type Widget struct {
 	Namespace string     `json:"namespace"`
 	Name      string     `json:"name"`
 	Type      WidgetType `json:"type"`
-	Value     uint64     `json:"value"`
+	Value     float64    `json:"value"`
 }

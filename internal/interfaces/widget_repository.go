@@ -31,7 +31,7 @@ func (wr *WidgetRepository) Update(
 	namespace string,
 	widgetType domain.WidgetType,
 	name string,
-	value uint64,
+	value float64,
 ) (widget domain.Widget, err error) {
 	key := wr.StorageHandler.Key(namespace, string(widgetType), name)
 	val, err := wr.StorageHandler.Set(key, value)
@@ -51,7 +51,7 @@ func (wr *WidgetRepository) Increment(
 	namespace string,
 	widgetType domain.WidgetType,
 	name string,
-	value uint64,
+	value float64,
 ) (widget domain.Widget, err error) {
 	key := wr.StorageHandler.Key(namespace, string(widgetType), name)
 
@@ -60,7 +60,7 @@ func (wr *WidgetRepository) Increment(
 		return
 	}
 
-	var newValue uint64
+	var newValue float64
 
 	if prevVal == nil {
 		newValue = value

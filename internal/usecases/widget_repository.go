@@ -13,13 +13,13 @@ type WidgetRepository interface {
 		namespace string,
 		widgetType domain.WidgetType,
 		name string,
-		value uint64,
+		value float64,
 	) (domain.Widget, error)
 
 	Increment(
 		namespace string,
 		widgetType domain.WidgetType,
 		name string,
-		value uint64,
+		value float64,
 	) (domain.Widget, error)
 }

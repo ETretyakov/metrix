@@ -26,7 +26,7 @@ func (wi *WidgetInteractor) Update(
 	namespace string,
 	widgetType domain.WidgetType,
 	name string,
-	value uint64,
+	value float64,
 ) (widget domain.Widget, err error) {
 	widget, err = wi.WidgetRepository.Update(
 		namespace,
@@ -42,7 +42,7 @@ func (wi *WidgetInteractor) Increment(
 	namespace string,
 	widgetType domain.WidgetType,
 	name string,
-	value uint64,
+	value float64,
 ) (widget domain.Widget, err error) {
 	widget, err = wi.WidgetRepository.Increment(
 		namespace,
