@@ -16,17 +16,17 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	config, err := config.LoadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Error().Caller().Str("Stage", "loading-config").Err(err).Msg("failed to load config")
 	}
 
 	log.Info().Caller().Msg("building watcher")
-	watcher := watcher.NewWatcher(*config)
+	w := watcher.NewWatcher(*cfg)
 
 	log.Info().Caller().Msg("starting watcher")
-	go watcher.Start(ctx, config.PollInterval)
+	go w.Start(ctx, cfg.PollInterval)
 
 	log.Info().Caller().Msg("starting to report")
-	watcher.Report(ctx, config.ServerUrl, config.ReportInterval)
+	w.Report(ctx, cfg.ServerURL, cfg.ReportInterval)
 }

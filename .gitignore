@@ -26,3 +26,4 @@ vendor/
 
 log/access.log
 log/error.log
+golangci-lint
