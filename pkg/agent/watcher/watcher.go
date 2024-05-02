@@ -3,7 +3,7 @@ package watcher
 import (
 	"context"
 	"fmt"
-	"math/rand/v2"
+	"math/rand"
 	"metrix/pkg/agent/config"
 	"metrix/pkg/client"
 	"reflect"
