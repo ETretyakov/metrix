@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 	"fmt"
-	"io"
-	"net/http"
+	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -25,33 +25,29 @@ func SendMetric(
 	value float64,
 ) error {
 	url := fmt.Sprintf("%s/update/%s/%s/%f", baseURL, widgetType, name, value)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, http.NoBody)
-	if err != nil {
-		return fmt.Errorf("client.GetConn: %w", err)
-	}
 
-	req.Header.Add("Content-Type", "text/plain; charset=utf-8")
+	client := resty.New()
 
-	client := http.Client{}
+	client.
+		SetRetryCount(3).
+		SetRetryWaitTime(time.Second * 2).
+		SetRetryMaxWaitTime(time.Second * 8)
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("client.Do: %w", err)
-	}
-	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			return
-		}
-	}()
+	resp, err := client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "text/plain; charset=utf-8").
+		Post(url)
 
-	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("client.ReadAll: %w", err)
 	}
 
-	if resp.StatusCode > http.StatusIMUsed {
-		return fmt.Errorf("client.Response: status_code=%d body=%s", resp.StatusCode, body)
+	if resp.IsError() {
+		return fmt.Errorf(
+			"failed to make request: status=%s body=%s",
+			resp.Status(),
+			resp.Body(),
+		)
 	}
 
 	log.Info().Caller().Str("Stage", "sending-metrics").
