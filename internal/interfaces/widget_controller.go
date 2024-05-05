@@ -129,8 +129,25 @@ func (wc *WidgetController) Keys(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	formattedKeys := strings.Join(keys, "\n")
-	_, err = w.Write([]byte(formattedKeys))
+	count := 0
+	items := make([]domain.WidgetListItem, 0)
+	for i, k := range keys {
+		splitKey := strings.Split(k, ":")
+		items = append(
+			items,
+			domain.WidgetListItem{
+				Namespace: splitKey[0],
+				Type:      domain.WidgetType(splitKey[1]),
+				Name:      splitKey[2],
+			},
+		)
+		count = i + 1
+	}
+
+	widgetList := domain.WidgetList{Count: count, Items: items}
+
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(widgetList)
 	if err != nil {
 		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusInternalServerError)

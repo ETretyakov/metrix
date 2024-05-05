@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"metrix/internal/exceptions"
 	"strings"
 	"sync"
@@ -47,8 +46,7 @@ func (s *MemoryStorage) Keys(namespace string) ([]string, error) {
 
 	for k := range s.s {
 		if strings.HasPrefix(k, namespace) {
-			splitKey := strings.Split(k, ":")
-			keys = append(keys, fmt.Sprintf("%s %s", splitKey[1], splitKey[2]))
+			keys = append(keys, k)
 		}
 	}
 
