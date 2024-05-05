@@ -18,11 +18,18 @@ const (
 	stageLogVal = "loading-config"
 )
 
+// type Config struct { //nolint:govet // I want it be pretty
+// 	ServerURL      string        `env:"AGT_SERVER_URL"      mapstructure:"AGT_SERVER_URL"      envDefault:"http://localhost:8080"` //nolint:lll // I want it be pretty
+// 	PollInterval   time.Duration `env:"AGT_POLL_INTERVAL"   mapstructure:"AGT_POLL_INTERVAL"   envDefault:"2s"`
+// 	ReportInterval time.Duration `env:"AGT_REPORT_INTERVAL" mapstructure:"AGT_REPORT_INTERVAL" envDefault:"10s"`
+// 	Metrics        []string      `env:"AGT_METRICS"         mapstructure:"AGT_METRICS"         envDefault:"*"`
+// }
+
 type Config struct { //nolint:govet // I want it be pretty
-	ServerURL      string        `env:"AGT_SERVER_URL"      mapstructure:"AGT_SERVER_URL"      envDefault:"http://localhost:8080"` //nolint:lll // I want it be pretty
-	PollInterval   time.Duration `env:"AGT_POLL_INTERVAL"   mapstructure:"AGT_POLL_INTERVAL"   envDefault:"2s"`
-	ReportInterval time.Duration `env:"AGT_REPORT_INTERVAL" mapstructure:"AGT_REPORT_INTERVAL" envDefault:"10s"`
-	Metrics        []string      `env:"AGT_METRICS"         mapstructure:"AGT_METRICS"         envDefault:"*"`
+	Address        string   `env:"ADDRESS"         mapstructure:"ADDRESS"         envDefault:"localhost:8080"` //nolint:lll // I want it be pretty
+	PollInterval   int32    `env:"POLL_INTERVAL"   mapstructure:"POLL_INTERVAL"   envDefault:"2"`
+	ReportInterval int32    `env:"REPORT_INTERVAL" mapstructure:"REPORT_INTERVAL" envDefault:"10"`
+	Metrics        []string `env:"AGT_METRICS"     mapstructure:"AGT_METRICS"     envDefault:"*"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -88,15 +95,15 @@ func LoadConfig() (*Config, error) {
 	pflag.Parse()
 
 	if addr != "" {
-		config.ServerURL = "http://" + addr
+		config.Address = addr
 	}
 
 	if pollInterval != 0 {
-		config.PollInterval = time.Second * time.Duration(pollInterval)
+		config.PollInterval = pollInterval
 	}
 
 	if reportInterval != 0 {
-		config.ReportInterval = time.Second * time.Duration(reportInterval)
+		config.ReportInterval = reportInterval
 	}
 
 	log.Info().Caller().Str(stageLogKey, stageLogVal).

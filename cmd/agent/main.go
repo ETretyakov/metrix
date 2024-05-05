@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"metrix/pkg/agent/config"
 	"metrix/pkg/agent/watcher"
@@ -25,8 +26,8 @@ func main() {
 	w := watcher.NewWatcher(*cfg)
 
 	log.Info().Caller().Msg("starting watcher")
-	go w.Start(ctx, cfg.PollInterval)
+	go w.Start(ctx, time.Second*time.Duration(cfg.PollInterval))
 
 	log.Info().Caller().Msg("starting to report")
-	w.Report(ctx, cfg.ServerURL, cfg.ReportInterval)
+	w.Report(ctx, "http://"+cfg.Address, time.Second*time.Duration(cfg.ReportInterval))
 }
