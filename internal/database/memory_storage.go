@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+	"strings"
 	"sync"
 )
 
@@ -22,8 +24,7 @@ func (s *MemoryStorage) Get(key string) (*float64, error) {
 
 	res, ok := s.s[key]
 	if !ok {
-		val := float64(0)
-		return &val, nil
+		return nil, nil
 	}
 
 	return &res, nil
@@ -36,4 +37,17 @@ func (s *MemoryStorage) Set(key string, value float64) (*float64, error) {
 	s.s[key] = value
 
 	return &value, nil
+}
+
+func (s *MemoryStorage) Keys(namespace string) ([]string, error) {
+	keys := make([]string, len(s.s))
+
+	for k := range s.s {
+		if strings.HasPrefix(k, namespace) {
+			splitKey := strings.Split(k, ":")
+			keys = append(keys, fmt.Sprintf("%s %s", splitKey[1], splitKey[2]))
+		}
+	}
+
+	return keys, nil
 }

@@ -3,9 +3,11 @@ package interfaces
 import (
 	"encoding/json"
 	"metrix/internal/domain"
+	"metrix/internal/exceptions"
 	"metrix/internal/usecases"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -49,6 +51,10 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 	widget, err := wc.WidgetInteractor.Show(namespace, widgetType, name)
 	if err != nil {
 		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+		if _, ok := err.(exceptions.RecordNotFound); ok {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -102,6 +108,27 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(widget)
+	if err != nil {
+		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (wc *WidgetController) Keys(w http.ResponseWriter, r *http.Request) {
+	wc.Logger.LogAccess("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	namespace := "default"
+
+	keys, err := wc.WidgetInteractor.Keys(namespace)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	formattedKeys := strings.Join(keys, "\n")
+	_, err = w.Write([]byte(formattedKeys))
 	if err != nil {
 		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusInternalServerError)

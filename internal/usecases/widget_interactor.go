@@ -53,3 +53,13 @@ func (wi *WidgetInteractor) Increment(
 
 	return
 }
+
+func (wi *WidgetInteractor) Keys(
+	namespace string,
+) (keys []string, err error) {
+	keys, err = wi.WidgetRepository.Keys(
+		namespace,
+	)
+
+	return
+}

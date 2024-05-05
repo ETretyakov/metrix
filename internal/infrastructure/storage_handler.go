@@ -33,6 +33,15 @@ func (s *StorageHandler) Set(key string, value float64) (*float64, error) {
 	return val, nil
 }
 
+func (s *StorageHandler) Keys(namespace string) ([]string, error) {
+	val, err := s.Storage.Keys(namespace)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get keys from memory storage: %w", err)
+	}
+
+	return val, nil
+}
+
 func NewStorageHandler() (interfaces.StorageHandler, error) {
 	storageHandler := &StorageHandler{
 		Storage: database.NewStorage(),
