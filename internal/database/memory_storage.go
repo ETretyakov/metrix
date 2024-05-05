@@ -19,27 +19,27 @@ func NewStorage() *MemoryStorage {
 	}
 }
 
-func (s *MemoryStorage) Get(key string) (*float64, error) {
+func (s *MemoryStorage) Get(key string) (float64, error) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
 	res, ok := s.s[key]
 	if !ok {
-		return nil, exceptions.RecordNotFoundError{
+		return 0, exceptions.RecordNotFoundError{
 			Msg: "not found value for key: " + key,
 		}
 	}
 
-	return &res, nil
+	return res, nil
 }
 
-func (s *MemoryStorage) Set(key string, value float64) (*float64, error) {
+func (s *MemoryStorage) Set(key string, value float64) (float64, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
 	s.s[key] = value
 
-	return &value, nil
+	return value, nil
 }
 
 func (s *MemoryStorage) Keys(namespace string) ([]string, error) {

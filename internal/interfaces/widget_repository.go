@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"errors"
 	"fmt"
 	"metrix/internal/domain"
 	"metrix/internal/exceptions"
@@ -21,21 +22,10 @@ func (wr *WidgetRepository) Show(
 		return
 	}
 
-	if val == nil {
-		err = exceptions.RecordNotFoundError{
-			Msg: fmt.Sprintf(
-				"failed to retrieve widget: name=%s type=%s",
-				name,
-				widgetType,
-			),
-		}
-		return
-	}
-
 	widget.Namespace = namespace
 	widget.Name = name
 	widget.Type = widgetType
-	widget.Value = *val
+	widget.Value = val
 
 	return
 }
@@ -55,7 +45,7 @@ func (wr *WidgetRepository) Update(
 	widget.Namespace = namespace
 	widget.Name = name
 	widget.Type = widgetType
-	widget.Value = *val
+	widget.Value = val
 
 	return
 }
@@ -70,15 +60,15 @@ func (wr *WidgetRepository) Increment(
 
 	prevVal, err := wr.StorageHandler.Get(key)
 	if err != nil {
-		return
+		var recordNotFound exceptions.RecordNotFoundError
+		if errors.As(err, &recordNotFound) {
+			prevVal = 0
+		} else {
+			return
+		}
 	}
 
-	var newValue float64
-	if prevVal == nil {
-		newValue = value
-	} else {
-		newValue = value + *prevVal
-	}
+	newValue := value + prevVal
 
 	val, err := wr.StorageHandler.Set(key, newValue)
 	if err != nil {
@@ -88,7 +78,7 @@ func (wr *WidgetRepository) Increment(
 	widget.Namespace = namespace
 	widget.Name = name
 	widget.Type = widgetType
-	widget.Value = *val
+	widget.Value = val
 
 	return
 }
