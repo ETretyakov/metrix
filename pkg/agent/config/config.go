@@ -27,8 +27,8 @@ const (
 
 type Config struct { //nolint:govet // I want it be pretty
 	Address        string   `env:"ADDRESS"         mapstructure:"ADDRESS"         envDefault:"localhost:8080"` //nolint:lll // I want it be pretty
-	PollInterval   int32    `env:"POLL_INTERVAL"   mapstructure:"POLL_INTERVAL"   envDefault:"2"`
-	ReportInterval int32    `env:"REPORT_INTERVAL" mapstructure:"REPORT_INTERVAL" envDefault:"10"`
+	PollInterval   int      `env:"POLL_INTERVAL"   mapstructure:"POLL_INTERVAL"   envDefault:"2"`
+	ReportInterval int      `env:"REPORT_INTERVAL" mapstructure:"REPORT_INTERVAL" envDefault:"10"`
 	Metrics        []string `env:"AGT_METRICS"     mapstructure:"AGT_METRICS"     envDefault:"*"`
 }
 
@@ -87,11 +87,11 @@ func LoadConfig() (*Config, error) {
 	var addr string
 	pflag.StringVarP(&addr, "address", "a", "", "the address for the api to listen on. Host and port separated by ':'")
 
-	var pollInterval int32
-	pflag.Int32VarP(&pollInterval, "poll interval", "r", 0, "the number of seconds - interval between polling")
+	var pollInterval int
+	pflag.IntVarP(&pollInterval, "poll interval", "r", 0, "the number of seconds - interval between polling")
 
-	var reportInterval int32
-	pflag.Int32VarP(&reportInterval, "report interval", "p", 0, "the number of seconds - interval between reporting")
+	var reportInterval int
+	pflag.IntVarP(&reportInterval, "report interval", "p", 0, "the number of seconds - interval between reporting")
 	pflag.Parse()
 
 	if addr != "" {
