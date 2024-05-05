@@ -2,6 +2,8 @@ package main
 
 import (
 	"metrix/internal/infrastructure"
+
+	"github.com/spf13/pflag"
 )
 
 func main() {
@@ -14,5 +16,10 @@ func main() {
 		logger.LogError("%s", err)
 	}
 
-	infrastructure.Dispatch(logger, storageHandler)
+	var addr string
+
+	pflag.StringVarP(&addr, "address", "a", ":8080", "the address for the api to listen on. Host and port separated by ':'")
+	pflag.Parse()
+
+	infrastructure.Dispatch(addr, logger, storageHandler)
 }

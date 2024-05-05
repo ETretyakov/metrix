@@ -10,6 +10,7 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/pflag"
 )
 
 const (
@@ -38,9 +39,6 @@ func LoadConfig() (*Config, error) {
 	if err := env.Parse(config); err != nil {
 		return nil, fmt.Errorf("env.Parse: %w", err)
 	}
-
-	log.Info().Caller().Str(stageLogKey, stageLogVal).
-		Msg(fmt.Sprintf("parsed config: %+v", config))
 
 	if len(config.Metrics) == 0 {
 		return nil, errors.New("metrics were not provided")
@@ -77,6 +75,28 @@ func LoadConfig() (*Config, error) {
 			"Sys",
 			"TotalAlloc",
 		}
+	}
+
+	var addr string
+	pflag.StringVarP(&addr, "address", "a", "", "the address for the api to listen on. Host and port separated by ':'")
+
+	var pollInterval int32
+	pflag.Int32VarP(&pollInterval, "poll interval", "r", 0, "the number of seconds - interval between polling")
+
+	var reportInterval int32
+	pflag.Int32VarP(&reportInterval, "report interval", "p", 0, "the number of seconds - interval between reporting")
+	pflag.Parse()
+
+	if addr != "" {
+		config.ServerURL = "http://" + addr
+	}
+
+	if pollInterval != 0 {
+		config.PollInterval = time.Second * time.Duration(pollInterval)
+	}
+
+	if reportInterval != 0 {
+		config.ReportInterval = time.Second * time.Duration(reportInterval)
 	}
 
 	log.Info().Caller().Str(stageLogKey, stageLogVal).
