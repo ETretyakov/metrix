@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"encoding/json"
+	"errors"
 	"metrix/internal/domain"
 	"metrix/internal/exceptions"
 	"metrix/internal/usecases"
@@ -51,7 +52,8 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 	widget, err := wc.WidgetInteractor.Show(namespace, widgetType, name)
 	if err != nil {
 		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
-		if _, ok := err.(exceptions.RecordNotFound); ok {
+		var recordNotFound exceptions.RecordNotFoundError
+		if errors.As(err, &recordNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}

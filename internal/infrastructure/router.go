@@ -1,7 +1,6 @@
 package infrastructure
 
 import (
-	"fmt"
 	"metrix/internal/interfaces"
 	"metrix/internal/usecases"
 	"net/http"
@@ -30,7 +29,7 @@ func Dispatch(logger usecases.Logger, storageHandler interfaces.StorageHandler) 
 	).Methods(http.MethodGet)
 
 	addr := ":8080"
-	logger.LogAccess(fmt.Sprintf("starting server at: %s", addr))
+	logger.LogAccess("starting server at: " + addr)
 	if err := http.ListenAndServe(addr, router); err != nil {
 		logger.LogError("%s", err)
 	}

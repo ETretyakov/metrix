@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+	"metrix/internal/exceptions"
 	"strings"
 	"sync"
 )
@@ -24,7 +25,9 @@ func (s *MemoryStorage) Get(key string) (*float64, error) {
 
 	res, ok := s.s[key]
 	if !ok {
-		return nil, nil
+		return nil, exceptions.RecordNotFoundError{
+			Msg: "not found value for key: " + key,
+		}
 	}
 
 	return &res, nil
@@ -40,7 +43,7 @@ func (s *MemoryStorage) Set(key string, value float64) (*float64, error) {
 }
 
 func (s *MemoryStorage) Keys(namespace string) ([]string, error) {
-	keys := make([]string, len(s.s))
+	keys := make([]string, 0)
 
 	for k := range s.s {
 		if strings.HasPrefix(k, namespace) {

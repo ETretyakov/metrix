@@ -1,9 +1,9 @@
 package exceptions
 
-type RecordNotFound struct {
+type RecordNotFoundError struct {
 	Msg string
 }
 
-func (e RecordNotFound) Error() string {
+func (e RecordNotFoundError) Error() string {
 	return e.Msg
 }

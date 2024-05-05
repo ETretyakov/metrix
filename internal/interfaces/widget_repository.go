@@ -22,7 +22,7 @@ func (wr *WidgetRepository) Show(
 	}
 
 	if val == nil {
-		err = exceptions.RecordNotFound{
+		err = exceptions.RecordNotFoundError{
 			Msg: fmt.Sprintf(
 				"failed to retrieve widget: name=%s type=%s",
 				name,
