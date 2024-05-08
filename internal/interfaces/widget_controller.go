@@ -63,14 +63,6 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(strconv.FormatFloat(widget.Value, 'f', -1, 64)))
-
-	// w.WriteHeader(http.StatusOK)
-	// err = json.NewEncoder(w).Encode(widget)
-	// if err != nil {
-	// 	wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
 }
 
 func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
@@ -113,13 +105,6 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(strconv.FormatFloat(widget.Value, 'f', -1, 64)))
-
-	// err = json.NewEncoder(w).Encode(widget)
-	// if err != nil {
-	// 	wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	return
-	// }
 }
 
 func (wc *WidgetController) Keys(w http.ResponseWriter, r *http.Request) {

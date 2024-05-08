@@ -18,13 +18,6 @@ const (
 	stageLogVal = "loading-config"
 )
 
-// type Config struct { //nolint:govet // I want it be pretty
-// 	ServerURL      string        `env:"AGT_SERVER_URL"      mapstructure:"AGT_SERVER_URL"      envDefault:"http://localhost:8080"` //nolint:lll // I want it be pretty
-// 	PollInterval   time.Duration `env:"AGT_POLL_INTERVAL"   mapstructure:"AGT_POLL_INTERVAL"   envDefault:"2s"`
-// 	ReportInterval time.Duration `env:"AGT_REPORT_INTERVAL" mapstructure:"AGT_REPORT_INTERVAL" envDefault:"10s"`
-// 	Metrics        []string      `env:"AGT_METRICS"         mapstructure:"AGT_METRICS"         envDefault:"*"`
-// }
-
 type Config struct { //nolint:govet // I want it be pretty
 	Address        string   `env:"ADDRESS"         mapstructure:"ADDRESS"         envDefault:"localhost:8080"` //nolint:lll // I want it be pretty
 	PollInterval   int      `env:"POLL_INTERVAL"   mapstructure:"POLL_INTERVAL"   envDefault:"2"`
@@ -94,15 +87,18 @@ func LoadConfig() (*Config, error) {
 	pflag.IntVarP(&reportInterval, "report interval", "p", 0, "the number of seconds - interval between reporting")
 	pflag.Parse()
 
-	if addr != "" {
+	envAddress := os.Getenv("ADDRESS")
+	if len(envAddress) == 0 && addr != "" {
 		config.Address = addr
 	}
 
-	if pollInterval != 0 {
+	envPollInterval := os.Getenv("POLL_INTERVAL")
+	if len(envPollInterval) == 0 && pollInterval != 0 {
 		config.PollInterval = pollInterval
 	}
 
-	if reportInterval != 0 {
+	envReportInterval := os.Getenv("REPORT_INTERVAL")
+	if len(envReportInterval) == 0 && reportInterval != 0 {
 		config.ReportInterval = reportInterval
 	}
 

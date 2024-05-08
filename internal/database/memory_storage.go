@@ -42,6 +42,9 @@ func (s *MemoryStorage) Set(key string, value float64) (float64, error) {
 }
 
 func (s *MemoryStorage) Keys(namespace string) ([]string, error) {
+	// s.mux.RLock()
+	// defer s.mux.RUnlock()
+
 	keys := make([]string, 0)
 
 	for k := range s.s {
