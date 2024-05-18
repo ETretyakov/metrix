@@ -4,6 +4,7 @@ import (
 	"io"
 	"metrix/internal/infrastructure"
 	"metrix/internal/interfaces"
+	"metrix/internal/logger"
 	"metrix/internal/usecases"
 	"net/http"
 	"net/http/httptest"
@@ -16,11 +17,10 @@ import (
 
 func TestWidgetController_Show(t *testing.T) {
 	// Dependencies
-	logger := infrastructure.NewLogger()
 
 	storageHandler, err := infrastructure.NewStorageHandler()
 	if err != nil {
-		logger.LogError("%s", err)
+		logger.Log.Error(err, "testing", "true")
 	}
 
 	widgetInteractor := usecases.WidgetInteractor{
@@ -35,7 +35,6 @@ func TestWidgetController_Show(t *testing.T) {
 	// Declare tests
 	type fields struct {
 		WidgetInteractor usecases.WidgetInteractor
-		Logger           usecases.Logger
 	}
 	type args struct {
 		w        httptest.ResponseRecorder
@@ -57,7 +56,6 @@ func TestWidgetController_Show(t *testing.T) {
 			name: "Test №1 - Success",
 			fields: fields{
 				WidgetInteractor: widgetInteractor,
-				Logger:           logger,
 			},
 			args: args{
 				w: *httptest.NewRecorder(),
@@ -81,7 +79,6 @@ func TestWidgetController_Show(t *testing.T) {
 			name: "Test №2 - Not found",
 			fields: fields{
 				WidgetInteractor: widgetInteractor,
-				Logger:           logger,
 			},
 			args: args{
 				w: *httptest.NewRecorder(),
@@ -105,7 +102,6 @@ func TestWidgetController_Show(t *testing.T) {
 			name: "Test №3 - Bad widget type",
 			fields: fields{
 				WidgetInteractor: widgetInteractor,
-				Logger:           logger,
 			},
 			args: args{
 				w: *httptest.NewRecorder(),
@@ -131,7 +127,6 @@ func TestWidgetController_Show(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			wc := &interfaces.WidgetController{
 				WidgetInteractor: tt.fields.WidgetInteractor,
-				Logger:           tt.fields.Logger,
 			}
 			req := mux.SetURLVars(tt.args.r, tt.args.pathVars)
 			wc.Show(&tt.args.w, req)
@@ -150,11 +145,9 @@ func TestWidgetController_Show(t *testing.T) {
 
 func TestWidgetController_Update(t *testing.T) {
 	// Dependencies
-	logger := infrastructure.NewLogger()
-
 	storageHandler, err := infrastructure.NewStorageHandler()
 	if err != nil {
-		logger.LogError("%s", err)
+		logger.Log.Error(err, "testing", "true")
 	}
 
 	widgetInteractor := usecases.WidgetInteractor{
@@ -170,7 +163,6 @@ func TestWidgetController_Update(t *testing.T) {
 	// Declare tests
 	type fields struct {
 		WidgetInteractor usecases.WidgetInteractor
-		Logger           usecases.Logger
 	}
 	type args struct {
 		w        httptest.ResponseRecorder
@@ -192,7 +184,6 @@ func TestWidgetController_Update(t *testing.T) {
 			name: "Test №1 - Success (Gauge)",
 			fields: fields{
 				WidgetInteractor: widgetInteractor,
-				Logger:           logger,
 			},
 			args: args{
 				w: *httptest.NewRecorder(),
@@ -217,7 +208,6 @@ func TestWidgetController_Update(t *testing.T) {
 			name: "Test №2 - Success (Counter)",
 			fields: fields{
 				WidgetInteractor: widgetInteractor,
-				Logger:           logger,
 			},
 			args: args{
 				w: *httptest.NewRecorder(),
@@ -242,7 +232,6 @@ func TestWidgetController_Update(t *testing.T) {
 			name: "Test №3 - Success (Counter)",
 			fields: fields{
 				WidgetInteractor: widgetInteractor,
-				Logger:           logger,
 			},
 			args: args{
 				w: *httptest.NewRecorder(),
@@ -267,7 +256,6 @@ func TestWidgetController_Update(t *testing.T) {
 			name: "Test №4 - Success (Not Exists)",
 			fields: fields{
 				WidgetInteractor: widgetInteractor,
-				Logger:           logger,
 			},
 			args: args{
 				w: *httptest.NewRecorder(),
@@ -294,7 +282,6 @@ func TestWidgetController_Update(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			wc := &interfaces.WidgetController{
 				WidgetInteractor: tt.fields.WidgetInteractor,
-				Logger:           tt.fields.Logger,
 			}
 			req := mux.SetURLVars(tt.args.r, tt.args.pathVars)
 			wc.Update(&tt.args.w, req)
@@ -313,11 +300,9 @@ func TestWidgetController_Update(t *testing.T) {
 
 func TestWidgetController_Keys(t *testing.T) {
 	// Dependencies
-	logger := infrastructure.NewLogger()
-
 	storageHandler, err := infrastructure.NewStorageHandler()
 	if err != nil {
-		logger.LogError("%s", err)
+		logger.Log.Error(err, "testing", "true")
 	}
 
 	widgetInteractor := usecases.WidgetInteractor{
@@ -332,7 +317,6 @@ func TestWidgetController_Keys(t *testing.T) {
 	// Declare tests
 	type fields struct {
 		WidgetInteractor usecases.WidgetInteractor
-		Logger           usecases.Logger
 	}
 	type args struct {
 		w        httptest.ResponseRecorder
@@ -354,7 +338,6 @@ func TestWidgetController_Keys(t *testing.T) {
 			name: "Test №1 - Success",
 			fields: fields{
 				WidgetInteractor: widgetInteractor,
-				Logger:           logger,
 			},
 			args: args{
 				w: *httptest.NewRecorder(),
@@ -377,7 +360,6 @@ func TestWidgetController_Keys(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			wc := &interfaces.WidgetController{
 				WidgetInteractor: tt.fields.WidgetInteractor,
-				Logger:           tt.fields.Logger,
 			}
 			req := mux.SetURLVars(tt.args.r, tt.args.pathVars)
 			wc.Keys(&tt.args.w, req)

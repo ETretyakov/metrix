@@ -1,30 +1,32 @@
 package main
 
 import (
+	"log"
+	"metrix/internal/config"
 	"metrix/internal/infrastructure"
-	"os"
-
-	"github.com/spf13/pflag"
+	"metrix/internal/logger"
 )
 
 func main() {
-	logger := infrastructure.NewLogger()
+	config, err := config.LoadConfig()
+	if err != nil {
+		err := logger.Initialize("debug")
+		if err != nil {
+			logger.Log.Fatalf("failed to load config: %w", err)
+		} else {
+			log.Fatalf("failed to load config: %s", err)
+		}
+	}
 
-	// infrastructure.Load(logger)  to load envs
+	logger.Initialize(config.LogLevel)
 
 	storageHandler, err := infrastructure.NewStorageHandler()
 	if err != nil {
-		logger.LogError("%s", err)
+		logger.Log.Fatalf("failed to connect to the storage: %w", err)
 	}
 
-	var addr string
-
-	pflag.StringVarP(&addr, "address", "a", ":8080", "the address for the api to listen on. Host and port separated by ':'")
-	pflag.Parse()
-
-	if envRunAddr := os.Getenv("ADDRESS"); envRunAddr != "" {
-		addr = envRunAddr
-	}
-
-	infrastructure.Dispatch(addr, logger, storageHandler)
+	infrastructure.Dispatch(
+		config.Address,
+		storageHandler,
+	)
 }

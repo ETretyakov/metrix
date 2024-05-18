@@ -5,6 +5,7 @@ import (
 	"errors"
 	"metrix/internal/domain"
 	"metrix/internal/exceptions"
+	"metrix/internal/logger"
 	"metrix/internal/usecases"
 	"net/http"
 	"strconv"
@@ -13,29 +14,21 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-	errorMsg = "[ERROR] %s %s %s: %s\n"
-)
-
 type WidgetController struct {
 	WidgetInteractor usecases.WidgetInteractor
-	Logger           usecases.Logger
 }
 
-func NewWidgetController(storageHandler StorageHandler, logger usecases.Logger) *WidgetController {
+func NewWidgetController(storageHandler StorageHandler) *WidgetController {
 	return &WidgetController{
 		WidgetInteractor: usecases.WidgetInteractor{
 			WidgetRepository: &WidgetRepository{
 				StorageHandler: storageHandler,
 			},
 		},
-		Logger: logger,
 	}
 }
 
 func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
-	wc.Logger.LogAccess("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
-
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 
 	vars := mux.Vars(r)
@@ -43,7 +36,12 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 	namespace := "default"
 	widgetType, err := domain.ParseWidgetType(vars["widgetType"])
 	if err != nil {
-		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -51,7 +49,12 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 
 	widget, err := wc.WidgetInteractor.Show(namespace, widgetType, name)
 	if err != nil {
-		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
 		var recordNotFound exceptions.RecordNotFoundError
 		if errors.As(err, &recordNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -66,8 +69,6 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
-	wc.Logger.LogAccess("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
-
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 
 	vars := mux.Vars(r)
@@ -75,7 +76,12 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 	namespace := "default"
 	widgetType, err := domain.ParseWidgetType(vars["widgetType"])
 	if err != nil {
-		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -84,7 +90,12 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 
 	val, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -98,7 +109,12 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 		widget, err = wc.WidgetInteractor.Update(namespace, widgetType, name, val)
 	}
 	if err != nil {
-		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -108,8 +124,6 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (wc *WidgetController) Keys(w http.ResponseWriter, r *http.Request) {
-	wc.Logger.LogAccess("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
-
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	namespace := "default"
 
@@ -139,7 +153,12 @@ func (wc *WidgetController) Keys(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(widgetList)
 	if err != nil {
-		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
