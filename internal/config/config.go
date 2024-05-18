@@ -25,6 +25,8 @@ func LoadConfig() (*Config, error) {
 	var logLevel string
 	pflag.StringVarP(&logLevel, "loglevel", "r", "", "the level of logger")
 
+	pflag.Parse()
+
 	envAddress := os.Getenv("ADDRESS")
 	if len(envAddress) == 0 && addr != "" {
 		config.Address = addr
