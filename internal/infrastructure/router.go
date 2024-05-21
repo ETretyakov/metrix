@@ -17,14 +17,14 @@ func Dispatch(
 	router := mux.NewRouter()
 
 	router.HandleFunc(
-		"/update",
+		"/update/",
 		widgetController.UpdateSingleEndpoint,
 	).
 		Methods(http.MethodPost).
 		Headers("Content-Type", "application/json")
 
 	router.HandleFunc(
-		"/value",
+		"/value/",
 		widgetController.ShowSingleEndpoint,
 	).
 		Methods(http.MethodPost).

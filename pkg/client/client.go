@@ -37,7 +37,7 @@ func SendMetric(
 	name string,
 	value float64,
 ) error {
-	url := fmt.Sprintf("%s/update", baseURL)
+	url := fmt.Sprintf("%s/update/", baseURL)
 	client := resty.New()
 
 	client.
