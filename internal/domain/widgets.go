@@ -39,3 +39,10 @@ type WidgetList struct {
 	Count int              `json:"count"`
 	Items []WidgetListItem `json:"items"`
 }
+
+type Metrics struct {
+	ID    string   `json:"id"`
+	MType string   `json:"type"`
+	Delta *int64   `json:"delta,omitempty"`
+	Value *float64 `json:"value,omitempty"`
+}
