@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"metrix/internal/interfaces"
 	"metrix/internal/logger"
+	"metrix/internal/middlewares"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -52,6 +53,7 @@ func Dispatch(
 	).Methods(http.MethodGet)
 
 	router.Use(logger.LoggingMiddleware)
+	router.Use(middlewares.GzipMiddleware)
 
 	logger.Log.Infof("starting server at: %s", addr)
 	if err := http.ListenAndServe(addr, router); err != nil {
