@@ -21,14 +21,20 @@ func Dispatch(
 		widgetController.UpdateSingleEndpoint,
 	).
 		Methods(http.MethodPost).
-		Headers("Content-Type", "application/json")
+		Headers(
+			"Content-Type", "application/json",
+			"Accept-Encoding", "gzip",
+		)
 
 	router.HandleFunc(
 		"/value/",
 		widgetController.ShowSingleEndpoint,
 	).
 		Methods(http.MethodPost).
-		Headers("Content-Type", "application/json")
+		Headers(
+			"Content-Type", "application/json",
+			"Accept-Encoding", "gzip",
+		)
 
 	router.HandleFunc(
 		"/update/{widgetType}/{name}/{value}",

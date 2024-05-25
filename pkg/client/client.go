@@ -41,6 +41,7 @@ func SendMetric(
 	client := resty.New()
 
 	client.
+		SetHeader("Accept-Encoding", "gzip").
 		SetRetryCount(RetryCount).
 		SetRetryWaitTime(RetryWaitTime).
 		SetRetryMaxWaitTime(RetryMaxWaitTime)
