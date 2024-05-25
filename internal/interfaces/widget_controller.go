@@ -3,6 +3,7 @@ package interfaces
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"metrix/internal/domain"
 	"metrix/internal/exceptions"
 	"metrix/internal/logger"
@@ -87,6 +88,8 @@ func (wc *WidgetController) ShowSingleEndpoint(
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	fmt.Printf(">>>>>> %+v", schemeIn)
 
 	namespace := "default"
 	widgetType, err := domain.ParseWidgetType(schemeIn.MType)

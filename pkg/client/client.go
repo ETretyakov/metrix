@@ -45,7 +45,7 @@ func SendMetric(
 
 	client.
 		SetHeader("Content-Encoding", "gzip").
-		SetHeader("Accept-Encoding", "").
+		SetHeader("Accept-Encoding", "gzip").
 		SetRetryCount(RetryCount).
 		SetRetryWaitTime(RetryWaitTime).
 		SetRetryMaxWaitTime(RetryMaxWaitTime)
@@ -83,7 +83,7 @@ func SendMetric(
 	resp, err := client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Content-Encoding", "gzip").
+		SetHeader("Accept-Encoding", "gzip").
 		SetBody(&buffer).
 		Post(url)
 
