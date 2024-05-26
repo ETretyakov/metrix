@@ -84,6 +84,10 @@ func (s *MemoryStorage) BackUp() error {
 }
 
 func (s *MemoryStorage) Restore() error {
+	if s.filePath != "" {
+		return nil
+	}
+
 	s.mux.Lock()
 
 	data, err := os.ReadFile(s.filePath)
