@@ -38,7 +38,7 @@ func NewStorage(
 		filePath:      filePath,
 	}
 
-	if restore {
+	if restore && ms.filePath != "" {
 		ms.Restore()
 	}
 
