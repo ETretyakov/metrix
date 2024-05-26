@@ -44,7 +44,6 @@ func SendMetric(
 	client := resty.New()
 
 	client.
-		SetHeader("Content-Encoding", "gzip").
 		SetHeader("Accept-Encoding", "gzip").
 		SetRetryCount(RetryCount).
 		SetRetryWaitTime(RetryWaitTime).
@@ -83,7 +82,6 @@ func SendMetric(
 	resp, err := client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Accept-Encoding", "gzip").
 		SetBody(&buffer).
 		Post(url)
 
@@ -98,6 +96,8 @@ func SendMetric(
 			resp.Body(),
 		)
 	}
+
+	fmt.Printf("got response: %s", resp.Body())
 
 	log.Info().Caller().Str("Stage", "sending-metrics").
 		Msg(

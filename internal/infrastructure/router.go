@@ -24,7 +24,7 @@ func Dispatch(
 		Methods(http.MethodPost).
 		Headers(
 			"Content-Type", "application/json",
-			"Accept-Encoding", "gzip",
+			// "Accept-Encoding", "gzip",
 		)
 
 	router.HandleFunc(
@@ -34,7 +34,7 @@ func Dispatch(
 		Methods(http.MethodPost).
 		Headers(
 			"Content-Type", "application/json",
-			"Accept-Encoding", "gzip",
+			// "Accept-Encoding", "gzip",
 		)
 
 	router.HandleFunc(

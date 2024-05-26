@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -46,7 +47,7 @@ type compressReader struct {
 func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	zr, err := gzip.NewReader(r)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get new comressor reader: %w", err)
 	}
 
 	return &compressReader{
@@ -56,14 +57,22 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 }
 
 func (c compressReader) Read(p []byte) (n int, err error) {
-	return c.zr.Read(p)
+	n, err = c.zr.Read(p)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read: %w", err)
+	}
+	return
 }
 
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
-		return err
+		return fmt.Errorf("failed to close comressor reader: %w", err)
 	}
-	return c.zr.Close()
+	err := c.zr.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close comressor reader: %w", err)
+	}
+	return nil
 }
 
 func GzipMiddleware(next http.Handler) http.Handler {
@@ -76,6 +85,7 @@ func GzipMiddleware(next http.Handler) http.Handler {
 			cw := newCompressWriter(w)
 			ow = cw
 			defer cw.Close()
+			w.Header().Set("Content-Encoding", "gzip")
 		}
 
 		contentEncoding := r.Header.Get("Content-Encoding")
