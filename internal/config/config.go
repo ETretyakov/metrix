@@ -44,7 +44,7 @@ func LoadConfig() (*Config, error) {
 	var fileStoragePath string
 	pflag.StringVarP(
 		&fileStoragePath,
-		"file_storage_path",
+		"file-storage-path",
 		"f",
 		"",
 		"the filepath to save memory storage",
