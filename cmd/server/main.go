@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"metrix/internal/config"
 	"metrix/internal/infrastructure"
@@ -20,7 +21,12 @@ func main() {
 
 	logger.Initialize(config.LogLevel)
 
-	storageHandler, err := infrastructure.NewStorageHandler()
+	storageHandler, err := infrastructure.NewStorageHandler(
+		context.Background(),
+		config.FileStoragePath,
+		config.StoreInterval,
+		config.Restore,
+	)
 	if err != nil {
 		logger.Log.Fatalf("failed to connect to the storage: %w", err)
 	}

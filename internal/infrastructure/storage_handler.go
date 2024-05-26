@@ -1,10 +1,12 @@
 package infrastructure
 
 import (
+	"context"
 	"fmt"
 	"metrix/internal/database"
 	"metrix/internal/interfaces"
 	"strings"
+	"time"
 )
 
 type StorageHandler struct {
@@ -42,10 +44,33 @@ func (s *StorageHandler) Keys(namespace string) ([]string, error) {
 	return val, nil
 }
 
-func NewStorageHandler() (interfaces.StorageHandler, error) {
+func NewStorageHandler(
+	ctx context.Context,
+	filePath string,
+	storeInterval time.Duration,
+	restore bool,
+) (interfaces.StorageHandler, error) {
 	storageHandler := &StorageHandler{
-		Storage: database.NewStorage(),
+		Storage: database.NewStorage(ctx, filePath, storeInterval, restore),
 	}
 
 	return storageHandler, nil
+}
+
+func (s *StorageHandler) BackUp() error {
+	err := s.Storage.BackUp()
+	if err != nil {
+		return fmt.Errorf("failed to backup memory storage: %w", err)
+	}
+
+	return nil
+}
+
+func (s *StorageHandler) Restore() error {
+	err := s.Storage.Restore()
+	if err != nil {
+		return fmt.Errorf("failed to restore memory storage: %w", err)
+	}
+
+	return nil
 }

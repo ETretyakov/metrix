@@ -1,6 +1,7 @@
 package interfaces_test
 
 import (
+	"context"
 	"io"
 	"metrix/internal/infrastructure"
 	"metrix/internal/interfaces"
@@ -18,7 +19,12 @@ import (
 func TestWidgetController_Show(t *testing.T) {
 	// Dependencies
 
-	storageHandler, err := infrastructure.NewStorageHandler()
+	storageHandler, err := infrastructure.NewStorageHandler(
+		context.Background(),
+		"",
+		0,
+		false,
+	)
 	if err != nil {
 		logger.Log.Error(err, "testing", "true")
 	}
@@ -145,7 +151,12 @@ func TestWidgetController_Show(t *testing.T) {
 
 func TestWidgetController_Update(t *testing.T) {
 	// Dependencies
-	storageHandler, err := infrastructure.NewStorageHandler()
+	storageHandler, err := infrastructure.NewStorageHandler(
+		context.Background(),
+		"",
+		0,
+		false,
+	)
 	if err != nil {
 		logger.Log.Error(err, "testing", "true")
 	}
@@ -300,7 +311,12 @@ func TestWidgetController_Update(t *testing.T) {
 
 func TestWidgetController_Keys(t *testing.T) {
 	// Dependencies
-	storageHandler, err := infrastructure.NewStorageHandler()
+	storageHandler, err := infrastructure.NewStorageHandler(
+		context.Background(),
+		"",
+		0,
+		false,
+	)
 	if err != nil {
 		logger.Log.Error(err, "testing", "true")
 	}
