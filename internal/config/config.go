@@ -86,7 +86,7 @@ func LoadConfig() (*Config, error) {
 	}
 
 	envRestore := os.Getenv("RESTORE")
-	if len(envRestore) == 0 && restore != false {
+	if len(envRestore) == 0 && restore {
 		config.Restore = restore
 	}
 

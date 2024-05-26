@@ -26,7 +26,7 @@ func NewStorage(
 	restore bool,
 ) *MemoryStorage {
 	saveSync := false
-	if storeInterval == 0 {
+	if storeInterval == time.Second*0 {
 		saveSync = true
 	}
 
@@ -64,6 +64,9 @@ func (s *MemoryStorage) PeriodicBackup(ctx context.Context) {
 }
 
 func (s *MemoryStorage) BackUp() error {
+	if s.filePath == "" {
+		return nil
+	}
 	s.mux.RLock()
 
 	data, err := json.Marshal(s.s)
