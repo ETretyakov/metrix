@@ -2,12 +2,13 @@ package middlewares
 
 import (
 	"compress/gzip"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
 )
 
+// compressWriter реализует интерфейс http.ResponseWriter и позволяет прозрачно для сервера
+// сжимать передаваемые данные и выставлять правильные HTTP-заголовки
 type compressWriter struct {
 	w  http.ResponseWriter
 	zw *gzip.Writer
@@ -35,10 +36,13 @@ func (c *compressWriter) WriteHeader(statusCode int) {
 	c.w.WriteHeader(statusCode)
 }
 
+// Close закрывает gzip.Writer и досылает все данные из буфера.
 func (c *compressWriter) Close() error {
 	return c.zw.Close()
 }
 
+// compressReader реализует интерфейс io.ReadCloser и позволяет прозрачно для сервера
+// декомпрессировать получаемые от клиента данные
 type compressReader struct {
 	r  io.ReadCloser
 	zr *gzip.Reader
@@ -47,7 +51,7 @@ type compressReader struct {
 func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	zr, err := gzip.NewReader(r)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get new comressor reader: %w", err)
+		return nil, err
 	}
 
 	return &compressReader{
@@ -57,22 +61,14 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 }
 
 func (c compressReader) Read(p []byte) (n int, err error) {
-	n, err = c.zr.Read(p)
-	if err != nil {
-		return 0, fmt.Errorf("failed to read: %w", err)
-	}
-	return
+	return c.zr.Read(p)
 }
 
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
-		return fmt.Errorf("failed to close comressor reader: %w", err)
+		return err
 	}
-	err := c.zr.Close()
-	if err != nil {
-		return fmt.Errorf("failed to close comressor reader: %w", err)
-	}
-	return nil
+	return c.zr.Close()
 }
 
 func GzipMiddleware(next http.Handler) http.Handler {
