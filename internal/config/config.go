@@ -11,7 +11,7 @@ import (
 
 type Config struct { //nolint:govet // I want it be pretty
 	Address         string        `env:"ADDRESS"           mapstructure:"ADDRESS"           envDefault:"localhost:8080"` //nolint:lll // I want it be pretty
-	StoreInterval   time.Duration `env:"STORE_INTERVAL"    mapstructure:"STORE_INTERVAL"    envDefault:"0s"`
+	StoreInterval   time.Duration `env:"STORE_INTERVAL"    mapstructure:"STORE_INTERVAL"    envDefault:"300s"`
 	FileStoragePath string        `env:"FILE_STORAGE_PATH" mapstructure:"FILE_STORAGE_PATH" envDefault:""`
 	Restore         bool          `env:"RESTORE"           mapstructure:"RESTORE"           envDefault:"false"`
 	LogLevel        string        `env:"LOG_LEVEL"         mapstructure:"LOG_LEVEL"         envDefault:"info"`

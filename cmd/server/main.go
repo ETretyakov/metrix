@@ -21,6 +21,8 @@ func main() {
 
 	logger.Initialize(config.LogLevel)
 
+	logger.Log.Infof("configuration %+v", config)
+
 	storageHandler, err := infrastructure.NewStorageHandler(
 		context.Background(),
 		config.FileStoragePath,

@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"metrix/internal/exceptions"
+	"metrix/internal/logger"
 	"os"
 	"strings"
 	"sync"
@@ -54,9 +56,15 @@ func (s *MemoryStorage) PeriodicBackup(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			s.BackUp()
+			err := s.BackUp()
+			if err != nil {
+				logger.Log.Warnf("failed to backup db %s", err)
+			}
 		case <-ctx.Done():
-			s.BackUp()
+			err := s.BackUp()
+			if err != nil {
+				logger.Log.Warnf("failed to backup db %s", err)
+			}
 			ticker.Stop()
 			return
 		}
@@ -74,7 +82,7 @@ func (s *MemoryStorage) BackUp() error {
 		return fmt.Errorf("failed to marshal storage: %w", err)
 	}
 
-	err = os.WriteFile(s.filePath, data, 0666)
+	err = os.WriteFile(s.filePath, data, fs.ModePerm)
 	if err != nil {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
