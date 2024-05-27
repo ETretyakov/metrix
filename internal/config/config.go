@@ -3,18 +3,17 @@ package config
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/caarlos0/env"
 	"github.com/spf13/pflag"
 )
 
 type Config struct { //nolint:govet // I want it be pretty
-	Address         string        `env:"ADDRESS"           mapstructure:"ADDRESS"           envDefault:"localhost:8080"` //nolint:lll // I want it be pretty
-	StoreInterval   time.Duration `env:"STORE_INTERVAL"    mapstructure:"STORE_INTERVAL"    envDefault:"300s"`
-	FileStoragePath string        `env:"FILE_STORAGE_PATH" mapstructure:"FILE_STORAGE_PATH" envDefault:""`
-	Restore         bool          `env:"RESTORE"           mapstructure:"RESTORE"           envDefault:"false"`
-	LogLevel        string        `env:"LOG_LEVEL"         mapstructure:"LOG_LEVEL"         envDefault:"info"`
+	Address         string `env:"ADDRESS"           mapstructure:"ADDRESS"           envDefault:"localhost:8080"` //nolint:lll // I want it be pretty
+	StoreInterval   int64  `env:"STORE_INTERVAL"    mapstructure:"STORE_INTERVAL"    envDefault:"300"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH" mapstructure:"FILE_STORAGE_PATH" envDefault:""`
+	Restore         bool   `env:"RESTORE"           mapstructure:"RESTORE"           envDefault:"false"`
+	LogLevel        string `env:"LOG_LEVEL"         mapstructure:"LOG_LEVEL"         envDefault:"info"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -32,12 +31,12 @@ func LoadConfig() (*Config, error) {
 		"the address for the api to listen on. Host and port separated by ':'",
 	)
 
-	var storeInterval time.Duration
-	pflag.DurationVarP(
+	var storeInterval int64
+	pflag.Int64VarP(
 		&storeInterval,
 		"store_interval",
 		"i",
-		time.Second*300,
+		300,
 		"the store_interval for database backup",
 	)
 

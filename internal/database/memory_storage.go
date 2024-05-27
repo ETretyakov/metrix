@@ -17,18 +17,18 @@ type MemoryStorage struct {
 	mux           *sync.RWMutex
 	s             map[string]float64
 	saveSync      bool
-	storeInterval time.Duration
+	storeInterval int64
 	filePath      string
 }
 
 func NewStorage(
 	ctx context.Context,
 	filePath string,
-	storeInterval time.Duration,
+	storeInterval int64,
 	restore bool,
 ) *MemoryStorage {
 	saveSync := false
-	if storeInterval == time.Second*0 {
+	if storeInterval == 0 {
 		saveSync = true
 	}
 
@@ -52,7 +52,7 @@ func NewStorage(
 }
 
 func (s *MemoryStorage) PeriodicBackup(ctx context.Context) {
-	ticker := time.NewTicker(s.storeInterval)
+	ticker := time.NewTicker(time.Duration(int64(time.Second) * s.storeInterval))
 	for {
 		select {
 		case <-ticker.C:

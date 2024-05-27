@@ -6,7 +6,6 @@ import (
 	"metrix/internal/database"
 	"metrix/internal/interfaces"
 	"strings"
-	"time"
 )
 
 type StorageHandler struct {
@@ -47,7 +46,7 @@ func (s *StorageHandler) Keys(namespace string) ([]string, error) {
 func NewStorageHandler(
 	ctx context.Context,
 	filePath string,
-	storeInterval time.Duration,
+	storeInterval int64,
 	restore bool,
 ) (interfaces.StorageHandler, error) {
 	storageHandler := &StorageHandler{

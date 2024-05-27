@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +22,7 @@ func TestWidgetController_Show(t *testing.T) {
 	storageHandler, err := infrastructure.NewStorageHandler(
 		context.Background(),
 		"",
-		time.Second*0,
+		0,
 		false,
 	)
 	if err != nil {
