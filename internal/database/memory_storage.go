@@ -92,7 +92,7 @@ func (s *MemoryStorage) BackUp() error {
 }
 
 func (s *MemoryStorage) Restore() error {
-	if s.filePath != "" {
+	if s.filePath == "" {
 		return nil
 	}
 
