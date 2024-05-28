@@ -29,3 +29,4 @@ log/error.log
 golangci-lint
 
 backup.json
+metricstest-darwin-amd64

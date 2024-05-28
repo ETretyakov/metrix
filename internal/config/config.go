@@ -14,6 +14,7 @@ type Config struct { //nolint:govet // I want it be pretty
 	FileStoragePath string `env:"FILE_STORAGE_PATH" mapstructure:"FILE_STORAGE_PATH" envDefault:""`
 	Restore         bool   `env:"RESTORE"           mapstructure:"RESTORE"           envDefault:"false"`
 	LogLevel        string `env:"LOG_LEVEL"         mapstructure:"LOG_LEVEL"         envDefault:"info"`
+	LogFile         string `env:"LOG_FILE"         mapstructure:"LOG_FILE"         envDefault:"logs.jsonl"`
 }
 
 func LoadConfig() (*Config, error) {

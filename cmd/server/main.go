@@ -11,7 +11,7 @@ import (
 func main() {
 	config, err := config.LoadConfig()
 	if err != nil {
-		err := logger.Initialize("debug")
+		err := logger.Initialize("logs.jsonl", "debug")
 		if err != nil {
 			logger.Log.Fatalf("failed to load config: %w", err)
 		} else {
@@ -19,7 +19,7 @@ func main() {
 		}
 	}
 
-	logger.Initialize(config.LogLevel)
+	logger.Initialize(config.LogFile, config.LogLevel)
 
 	logger.Log.Infof("configuration %+v", config)
 
