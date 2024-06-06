@@ -74,6 +74,7 @@ func Dispatch(
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 		defer cancel()
 		err = server.Shutdown(ctx)
+		logger.Log.Errorw(err.Error(), "address", addr)
 	case err = <-serverErr:
 		logger.Log.Errorw(err.Error(), "address", addr)
 	}
