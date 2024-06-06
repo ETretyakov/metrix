@@ -41,7 +41,10 @@ func NewStorage(
 	}
 
 	if restore && ms.filePath != "" {
-		ms.Restore()
+		err := ms.Restore()
+		if err != nil {
+			logger.Log.Warnf("failed to restore: db %s", err)
+		}
 	}
 
 	if !saveSync {
@@ -52,6 +55,7 @@ func NewStorage(
 }
 
 func (s *MemoryStorage) PeriodicBackup(ctx context.Context) {
+	logger.Log.Info("starting backing up")
 	ticker := time.NewTicker(time.Duration(int64(time.Second) * s.storeInterval))
 	for {
 		select {
@@ -59,11 +63,15 @@ func (s *MemoryStorage) PeriodicBackup(ctx context.Context) {
 			err := s.BackUp()
 			if err != nil {
 				logger.Log.Warnf("failed to backup db %s", err)
+			} else {
+				logger.Log.Info("db backed up")
 			}
 		case <-ctx.Done():
 			err := s.BackUp()
 			if err != nil {
 				logger.Log.Warnf("failed to backup db %s", err)
+			} else {
+				logger.Log.Info("db backed up")
 			}
 			ticker.Stop()
 			return
@@ -76,6 +84,7 @@ func (s *MemoryStorage) BackUp() error {
 		return nil
 	}
 	s.mux.RLock()
+	defer s.mux.RUnlock()
 
 	data, err := json.Marshal(s.s)
 	if err != nil {
@@ -87,7 +96,6 @@ func (s *MemoryStorage) BackUp() error {
 		return fmt.Errorf("failed to write file: %w", err)
 	}
 
-	s.mux.RUnlock()
 	return nil
 }
 
@@ -96,7 +104,10 @@ func (s *MemoryStorage) Restore() error {
 		return nil
 	}
 
+	logger.Log.Info("restoring db")
+
 	s.mux.Lock()
+	defer s.mux.Unlock()
 
 	data, err := os.ReadFile(s.filePath)
 	if err != nil {
@@ -111,7 +122,8 @@ func (s *MemoryStorage) Restore() error {
 
 	s.s = newStorage
 
-	s.mux.Unlock()
+	logger.Log.Info("restored db")
+
 	return nil
 }
 
@@ -135,10 +147,17 @@ func (s *MemoryStorage) Set(key string, value float64) (float64, error) {
 
 	s.s[key] = value
 
-	if s.saveSync {
-		err := s.BackUp()
+	fmt.Printf(">>>> %+v", s.s)
+
+	if s.saveSync && s.filePath != "" {
+		data, err := json.Marshal(s.s)
 		if err != nil {
-			return 0, fmt.Errorf("failed to backup storage: %w", err)
+			return value, fmt.Errorf("failed to marshal storage: %w", err)
+		}
+
+		err = os.WriteFile(s.filePath, data, fs.ModePerm)
+		if err != nil {
+			return value, fmt.Errorf("failed to write file: %w", err)
 		}
 	}
 

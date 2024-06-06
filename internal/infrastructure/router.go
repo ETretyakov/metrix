@@ -1,15 +1,18 @@
 package infrastructure
 
 import (
+	"context"
 	"metrix/internal/interfaces"
 	"metrix/internal/logger"
 	"metrix/internal/middlewares"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
 func Dispatch(
+	ctx context.Context,
 	addr string,
 	storageHandler interfaces.StorageHandler,
 ) {
@@ -54,7 +57,24 @@ func Dispatch(
 	router.Use(middlewares.GzipMiddleware)
 
 	logger.Log.Infof("starting server at: %s", addr)
-	if err := http.ListenAndServe(addr, router); err != nil {
+
+	server := http.Server{
+		Addr:    addr,
+		Handler: router,
+	}
+
+	serverErr := make(chan error, 1)
+	go func() {
+		serverErr <- server.ListenAndServe()
+	}()
+
+	var err error
+	select {
+	case <-ctx.Done():
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+		defer cancel()
+		err = server.Shutdown(ctx)
+	case err = <-serverErr:
 		logger.Log.Errorw(err.Error(), "address", addr)
 	}
 }

@@ -6,6 +6,9 @@ import (
 	"metrix/internal/config"
 	"metrix/internal/infrastructure"
 	"metrix/internal/logger"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -23,8 +26,11 @@ func main() {
 
 	logger.Log.Infof("configuration %+v", config)
 
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
 	storageHandler, err := infrastructure.NewStorageHandler(
-		context.Background(),
+		ctx,
 		config.FileStoragePath,
 		config.StoreInterval,
 		config.Restore,
@@ -34,6 +40,7 @@ func main() {
 	}
 
 	infrastructure.Dispatch(
+		ctx,
 		config.Address,
 		storageHandler,
 	)

@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/caarlos0/env"
 	"github.com/spf13/pflag"
@@ -35,7 +36,7 @@ func LoadConfig() (*Config, error) {
 	var storeInterval int64
 	pflag.Int64VarP(
 		&storeInterval,
-		"store_interval",
+		"store-interval",
 		"i",
 		300,
 		"the store_interval for database backup",
@@ -86,8 +87,12 @@ func LoadConfig() (*Config, error) {
 	}
 
 	envRestore := os.Getenv("RESTORE")
-	if len(envRestore) == 0 && restore {
+	if restore {
 		config.Restore = restore
+	} else {
+		if strings.ToLower(envRestore) == "true" {
+			config.Restore = true
+		}
 	}
 
 	envLogLevel := os.Getenv("LOG_LEVEL")
