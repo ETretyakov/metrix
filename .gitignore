@@ -30,3 +30,4 @@ golangci-lint
 
 backup.json
 metricstest-darwin-amd64
+metricstest-darwin-arm64

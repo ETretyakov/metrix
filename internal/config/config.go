@@ -2,98 +2,48 @@ package config
 
 import (
 	"fmt"
-	"os"
+	"time"
 
-	"github.com/caarlos0/env"
-	"github.com/spf13/pflag"
+	"github.com/caarlos0/env/v6"
 )
 
-type Config struct { //nolint:govet // I want it be pretty
-	Address         string `env:"ADDRESS"           mapstructure:"ADDRESS"           envDefault:"localhost:8080"` //nolint:lll // I want it be pretty
-	StoreInterval   int64  `env:"STORE_INTERVAL"    mapstructure:"STORE_INTERVAL"    envDefault:"300"`
-	FileStoragePath string `env:"FILE_STORAGE_PATH" mapstructure:"FILE_STORAGE_PATH" envDefault:""`
-	Restore         bool   `env:"RESTORE"           mapstructure:"RESTORE"           envDefault:"false"`
-	LogLevel        string `env:"LOG_LEVEL"         mapstructure:"LOG_LEVEL"         envDefault:"info"`
-	LogFile         string `env:"LOG_FILE"         mapstructure:"LOG_FILE"         envDefault:"logs.jsonl"`
+type AppMode string
+
+const (
+	ProdAppMode  AppMode = "prod"
+	StageAppMode AppMode = "stage"
+	DevAppMode   AppMode = "dev"
+	LocalAppMode AppMode = "local"
+)
+
+type Postgres struct {
+	DSN             string        `env:"DSN"              envDefault:""`
+	MaxOpenConn     int           `env:"MAX_OPEN_CONN"    envDefault:"10"`
+	IdleConn        int           `env:"MAX_IDLE_CONN"    envDefault:"10"`
+	PingInterval    time.Duration `env:"DURATION"         envDefault:"5s"`
+	MigrationFolder string        `env:"MIGRATION_FODLER" envDefault:"./migrations"`
 }
 
-func LoadConfig() (*Config, error) {
-	config := &Config{}
-	if err := env.Parse(config); err != nil {
-		return nil, fmt.Errorf("env.Parse: %w", err)
+type Config struct {
+	AppMode         AppMode  `env:"APP_MODE"          envDefault:"local"           flag:"mode"              flagShort:"m" flagDescription:"application mode"`
+	HTTPAddress     string   `env:"ADDRESS"           envDefault:"localhost:8080"  flag:"address"           flagShort:"a" flagDescription:"http adress"`
+	StoreInterval   int64    `env:"STORE_INTERVAL"    envDefault:"300"             flag:"store_interval"    flagShort:"i" flagDescription:"interval for storage backup"`
+	FileStoragePath string   `env:"FILE_STORAGE_PATH" envDefault:""                flag:"file_storage_path" flagShort:"f" flagDescription:"filepath storage backup"`
+	Restore         bool     `env:"RESTORE"           envDefault:"false"           flag:"restore"           flagShort:"r" flagDescription:"boolean to restore from backup"`
+	LogLevel        string   `env:"LOG_LEVEL"         envDefault:"info"            flag:"log_level"         flagShort:"l" flagDescription:"level for logging"`
+	LogFile         string   `env:"LOG_FILE"          envDefault:"logs/logs.jsonl" flag:"log_file"          flagShort:"w" flagDescription:"filepath for logs"`
+	Postgres        Postgres `envPrefix:"DATABASE_"                                flag:"pg_dsn"            flagShort:"d" flagDescription:"database dsn"`
+}
+
+func NewConfig() (*Config, error) {
+	cfg := &Config{}
+
+	err := env.Parse(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse envs: %w", err)
 	}
 
-	var addr string
-	pflag.StringVarP(
-		&addr,
-		"address",
-		"a",
-		"",
-		"the address for the api to listen on. Host and port separated by ':'",
-	)
+	ParseFlags(cfg)
 
-	var storeInterval int64
-	pflag.Int64VarP(
-		&storeInterval,
-		"store_interval",
-		"i",
-		300,
-		"the store_interval for database backup",
-	)
-
-	var fileStoragePath string
-	pflag.StringVarP(
-		&fileStoragePath,
-		"file-storage-path",
-		"f",
-		"",
-		"the filepath to save memory storage",
-	)
-
-	var restore bool
-	pflag.BoolVarP(
-		&restore,
-		"restore",
-		"r",
-		true,
-		"the bool for if restore memory storage",
-	)
-
-	var logLevel string
-	pflag.StringVarP(
-		&logLevel,
-		"loglevel",
-		"l",
-		"",
-		"the level of logger",
-	)
-
-	pflag.Parse()
-
-	envAddress := os.Getenv("ADDRESS")
-	if len(envAddress) == 0 && addr != "" {
-		config.Address = addr
-	}
-
-	envStoreInterval := os.Getenv("STORE_INTERVAL")
-	if len(envStoreInterval) == 0 {
-		config.StoreInterval = storeInterval
-	}
-
-	envFileStoragePath := os.Getenv("FILE_STORAGE_PATH")
-	if len(envFileStoragePath) == 0 && fileStoragePath != "" {
-		config.FileStoragePath = fileStoragePath
-	}
-
-	envRestore := os.Getenv("RESTORE")
-	if len(envRestore) == 0 && restore {
-		config.Restore = restore
-	}
-
-	envLogLevel := os.Getenv("LOG_LEVEL")
-	if len(envLogLevel) == 0 && logLevel != "" {
-		config.LogLevel = envLogLevel
-	}
-
-	return config, nil
+	return cfg, nil
 }

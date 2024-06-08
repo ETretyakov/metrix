@@ -1,101 +1,97 @@
 package logger
 
 import (
-	"fmt"
-	"net/http"
+	"context"
+	"io"
 	"os"
-	"time"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"github.com/rs/zerolog"
 )
 
-var Log *zap.SugaredLogger = zap.NewNop().Sugar()
+var (
+	bootstrapLogger zerolog.Logger
+	globalLogger    zerolog.Logger
+	globalOutput    io.Writer
 
-func Initialize(filePath string, level string) error {
-	config := zap.NewProductionEncoderConfig()
-	config.EncodeTime = zapcore.ISO8601TimeEncoder
-
-	// Create file and console encoders
-	fileEncoder := zapcore.NewJSONEncoder(config)
-	consoleEncoder := zapcore.NewConsoleEncoder(config)
-
-	// Open the log file
-	logFile, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to open log file: %v", err)
-	}
-
-	// Create writers for file and console
-	fileWriter := zapcore.AddSync(logFile)
-	consoleWriter := zapcore.AddSync(os.Stdout)
-
-	// Set the log level
-	defaultLogLevel := zapcore.DebugLevel
-
-	// Create cores for writing to the file and console
-	fileCore := zapcore.NewCore(fileEncoder, fileWriter, defaultLogLevel)
-	consoleCore := zapcore.NewCore(consoleEncoder, consoleWriter, defaultLogLevel)
-
-	// Combine cores
-	core := zapcore.NewTee(fileCore, consoleCore)
-
-	// Create the logger with additional context information (caller, stack trace)
-	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel)).Sugar()
-
-	Log = logger
-
-	return nil
-}
-
-type (
-	responseData struct {
-		status int
-		size   int
-	}
-
-	loggingResponseWriter struct {
-		http.ResponseWriter
-		responseData *responseData
-	}
+	withStack         bool
+	withCaller        bool
+	withConsoleWriter bool
 )
 
-func (r *loggingResponseWriter) Write(b []byte) (int, error) {
-	size, err := r.ResponseWriter.Write(b)
-	r.responseData.size += size
-	return size, err
+func init() {
+	bootstrapLogger = zerolog.Nop()
+	globalLogger = bootstrapLogger
 }
 
-func (r *loggingResponseWriter) WriteHeader(statusCode int) {
-	r.ResponseWriter.WriteHeader(statusCode)
-	r.responseData.status = statusCode
+func InitDefault(level string) {
+	globalOutput = os.Stderr
+
+	bootstrapLogger = zerolog.New(globalOutput)
+
+	applyOptions()
+
+	ctx := bootstrapLogger.With().Timestamp().Caller().Stack()
+
+	globalLogger = ctx.Logger()
+
+	GlobalLevelFromString(level)
 }
 
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
+func Init(w io.Writer, level string, opts ...Option) {
+	if w == nil {
+		w = os.Stderr
+	}
 
-		responseData := &responseData{
-			status: 0,
-			size:   0,
+	globalOutput = w
+
+	bootstrapLogger = zerolog.New(globalOutput)
+
+	applyOptions(opts...)
+
+	ctx := bootstrapLogger.With().Timestamp()
+
+	if withCaller {
+		ctx = ctx.Caller()
+	}
+
+	if withStack {
+		ctx = ctx.Stack()
+	}
+
+	globalLogger = ctx.Logger()
+
+	GlobalLevelFromString(level)
+}
+
+func consoleWriterSetup(out io.Writer) func(cw *zerolog.ConsoleWriter) {
+	return func(cw *zerolog.ConsoleWriter) {
+		cw.Out = out
+
+		cw.PartsOrder = []string{
+			TimestampFieldName,
+			zerolog.LevelFieldName,
+			zerolog.CallerFieldName,
+			MessageFieldName,
 		}
+	}
+}
 
-		lw := loggingResponseWriter{
-			ResponseWriter: w,
-			responseData:   responseData,
-		}
+func Debug(ctx context.Context, msg string, kv ...any) {
+	globalLogger.Debug().Fields(kv).Msg(msg)
+}
 
-		next.ServeHTTP(&lw, r)
+func Info(ctx context.Context, msg string, kv ...any) {
+	globalLogger.Info().Fields(kv).Msg(msg)
+}
 
-		duration := time.Since(start)
+func Warn(ctx context.Context, msg string, kv ...any) {
+	globalLogger.Warn().Fields(kv).Msg(msg)
+}
 
-		Log.Infow(
-			"got incoming request",
-			"url", r.URL,
-			"method", r.Method,
-			"status", responseData.status,
-			"duration", duration,
-			"size", responseData.size,
-		)
-	})
+func Error(ctx context.Context, msg string, err error, kv ...any) {
+	globalLogger.Error().Fields(kv).Err(err).Msg(msg)
+}
+
+func Fatal(ctx context.Context, msg string, err error, kv ...any) {
+	globalLogger.Fatal().Fields(kv).Err(err).Msg(msg)
 }
