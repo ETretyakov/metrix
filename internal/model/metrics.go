@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type MType string
 
@@ -31,7 +34,7 @@ func (m *Metric) SetValue(delta *int64, value *float64) {
 
 func (m *Metric) GetValue() string {
 	if m.MType == GaugeType {
-		return fmt.Sprintf("%f", *m.Value)
+		return strconv.FormatFloat(*m.Value, 'f', -1, 64)
 	}
 
 	if m.MType == CounterType {
