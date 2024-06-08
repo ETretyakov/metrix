@@ -34,7 +34,7 @@ func TestMetricControllerInMemoryStorageSet(t *testing.T) {
 				vars: map[string]string{
 					"metricID": "Metric 1",
 					"mtype":    "counter",
-					"delta":    "100",
+					"value":    "100",
 				},
 			},
 			want: &model.Metric{
@@ -52,7 +52,7 @@ func TestMetricControllerInMemoryStorageSet(t *testing.T) {
 				vars: map[string]string{
 					"metricID": "Metric 1",
 					"mtype":    "counter",
-					"delta":    "100",
+					"value":    "100",
 				},
 			},
 			want: &model.Metric{
