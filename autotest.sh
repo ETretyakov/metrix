@@ -10,3 +10,8 @@ go build -o cmd/agent/agent cmd/agent/*.go
             -source-path=. \
             -agent-binary-path=cmd/agent/agent \
             -binary-path=cmd/server/server
+./metricstest -test.v -test.run=^TestIteration4$ \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=8888 \
+            -source-path=.
