@@ -17,6 +17,7 @@ type MetricRepository interface {
 	Read(ctx context.Context, metricID string) (*model.Metric, error)
 	Update(ctx context.Context, metric *model.Metric) (*model.Metric, error)
 	Delete(ctx context.Context, metricID string) error
+	ReadIDs(ctx context.Context) (*[]string, error)
 }
 
 type Group struct {

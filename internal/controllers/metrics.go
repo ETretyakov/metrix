@@ -5,12 +5,7 @@ import (
 	"fmt"
 	"metrix/internal/model"
 	"metrix/internal/repository"
-	"metrix/internal/validators"
 	"metrix/pkg/logger"
-)
-
-var (
-	metricValidator = validators.NewMetricValidator()
 )
 
 type MetricControllerImpl struct {
@@ -23,14 +18,8 @@ func NewMetricController(repoGroup *repository.Group) *MetricControllerImpl {
 
 func (m *MetricControllerImpl) Set(
 	ctx context.Context,
-	vars map[string]string,
+	metricIn *model.Metric,
 ) (*model.Metric, error) {
-	metricIn, err := metricValidator.FromVars(vars)
-	if err != nil {
-		logger.Debug(ctx, fmt.Sprintf("failed to parse structure: %s", err))
-		return nil, fmt.Errorf("failed to parse metric: %w", err)
-	}
-
 	metric, err := m.repoGroup.MetricRepo.Read(ctx, metricIn.ID)
 	if err != nil {
 		logger.Debug(ctx, fmt.Sprintf("failed to retrieve structure: %s", err))
@@ -66,4 +55,14 @@ func (m *MetricControllerImpl) Get(
 	}
 
 	return metric, nil
+}
+
+func (m *MetricControllerImpl) GetIDs(ctx context.Context) (*[]string, error) {
+	ids, err := m.repoGroup.MetricRepo.ReadIDs(ctx)
+	if err != nil {
+		logger.Debug(ctx, fmt.Sprintf("failed to retrieve ids: %s", err))
+		return nil, fmt.Errorf("failed to retrieve ids: %w", err)
+	}
+
+	return ids, nil
 }

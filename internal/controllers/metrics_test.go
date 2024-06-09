@@ -16,8 +16,8 @@ func TestMetricControllerInMemoryStorageSet(t *testing.T) {
 		repoGroup *repository.Group
 	}
 	type args struct {
-		ctx  context.Context
-		vars map[string]string
+		ctx    context.Context
+		metric *model.Metric
 	}
 	tests := []struct {
 		name    string
@@ -31,10 +31,10 @@ func TestMetricControllerInMemoryStorageSet(t *testing.T) {
 			fields: fields{repoGroup: repoGroup},
 			args: args{
 				ctx: ctx,
-				vars: map[string]string{
-					"metricID": "Metric 1",
-					"mtype":    "counter",
-					"value":    "100",
+				metric: &model.Metric{
+					ID:    "Metric 1",
+					MType: "counter",
+					Delta: func() *int64 { i := int64(100); return &i }(),
 				},
 			},
 			want: &model.Metric{
@@ -49,10 +49,10 @@ func TestMetricControllerInMemoryStorageSet(t *testing.T) {
 			fields: fields{repoGroup: repoGroup},
 			args: args{
 				ctx: ctx,
-				vars: map[string]string{
-					"metricID": "Metric 1",
-					"mtype":    "counter",
-					"value":    "100",
+				metric: &model.Metric{
+					ID:    "Metric 1",
+					MType: "counter",
+					Delta: func() *int64 { i := int64(100); return &i }(),
 				},
 			},
 			want: &model.Metric{
@@ -67,10 +67,10 @@ func TestMetricControllerInMemoryStorageSet(t *testing.T) {
 			fields: fields{repoGroup: repoGroup},
 			args: args{
 				ctx: ctx,
-				vars: map[string]string{
-					"metricID": "Metric 2",
-					"mtype":    "gauge",
-					"value":    "100",
+				metric: &model.Metric{
+					ID:    "Metric 2",
+					MType: "gauge",
+					Value: func() *float64 { i := float64(100); return &i }(),
 				},
 			},
 			want: &model.Metric{
@@ -85,10 +85,10 @@ func TestMetricControllerInMemoryStorageSet(t *testing.T) {
 			fields: fields{repoGroup: repoGroup},
 			args: args{
 				ctx: ctx,
-				vars: map[string]string{
-					"metricID": "Metric 2",
-					"mtype":    "gauge",
-					"value":    "200",
+				metric: &model.Metric{
+					ID:    "Metric 2",
+					MType: "gauge",
+					Value: func() *float64 { i := float64(200); return &i }(),
 				},
 			},
 			want: &model.Metric{
@@ -105,7 +105,7 @@ func TestMetricControllerInMemoryStorageSet(t *testing.T) {
 			m := &MetricControllerImpl{
 				repoGroup: tt.fields.repoGroup,
 			}
-			got, err := m.Set(tt.args.ctx, tt.args.vars)
+			got, err := m.Set(tt.args.ctx, tt.args.metric)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("MetricControllerImpl.Set() error = %v, wantErr %v", err, tt.wantErr)
 				return

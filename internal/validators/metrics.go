@@ -1,6 +1,8 @@
 package validators
 
 import (
+	"encoding/json"
+	"io"
 	"metrix/internal/model"
 	"strconv"
 
@@ -21,12 +23,12 @@ func (v *MetricValidator) FromVars(vars map[string]string) (*model.Metric, error
 	metric := &model.Metric{}
 
 	// Retrieveing variables
-	metricID, ok := vars["metricID"]
+	metricID, ok := vars["id"]
 	if !ok {
 		return nil, NewParsingValueError("failed to retrieve metricID path param")
 	}
 
-	mtype, ok := vars["mtype"]
+	mtype, ok := vars["type"]
 	if !ok {
 		return nil, NewParsingValueError("failed to retrieve mtype path param")
 	}
@@ -37,9 +39,12 @@ func (v *MetricValidator) FromVars(vars map[string]string) (*model.Metric, error
 	if mtype == string(model.CounterType) {
 		metric.MType = model.CounterType
 
-		val, ok := vars["value"]
+		val, ok := vars["delta"]
 		if !ok {
-			return nil, NewParsingValueError("failed to retrieve value path param")
+			val, ok = vars["value"]
+			if !ok {
+				return nil, NewParsingValueError("failed to retrieve value path param")
+			}
 		}
 
 		delta, err := strconv.ParseInt(val, 10, 64)
@@ -70,6 +75,21 @@ func (v *MetricValidator) FromVars(vars map[string]string) (*model.Metric, error
 	err := v.validate.Struct(metric)
 	if err != nil {
 		return nil, NewParsingValueError("failed to validate metric: %s", err)
+	}
+
+	return metric, nil
+}
+
+func (v *MetricValidator) FromBody(body io.ReadCloser) (*model.Metric, error) {
+	metric := &model.Metric{}
+
+	err := json.NewDecoder(body).Decode(metric)
+	if err != nil {
+		return nil, NewParsingValueError("failed to parse metric json: %s", err)
+	}
+
+	if metric.MType != model.CounterType && metric.MType != model.GaugeType {
+		return nil, NewParsingValueError("failed to validate metric type: %s", err)
 	}
 
 	return metric, nil

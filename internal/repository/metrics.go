@@ -68,6 +68,31 @@ func (r *MetricRepositoryImpl) Read(
 	return &newMetric, nil
 }
 
+func (r *MetricRepositoryImpl) ReadIDs(
+	ctx context.Context,
+) (*[]string, error) {
+	qu, _, err := goqu.
+		Select("id").
+		From(metricTName).
+		ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("read ids metric error during query building: %w", err)
+	}
+
+	var ids []string
+	row := r.gr.DB.QueryRowxContext(ctx, qu)
+	err = row.StructScan(&ids)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, fmt.Errorf("read metric error during scan row: %w", err)
+	}
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	return &ids, nil
+}
+
 func (r *MetricRepositoryImpl) Update(
 	ctx context.Context,
 	metric *model.Metric,

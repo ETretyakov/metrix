@@ -54,6 +54,21 @@ func (s *MemoryStorage) Read(
 	return &m, nil
 }
 
+func (s *MemoryStorage) ReadIDs(
+	ctx context.Context,
+) (*[]string, error) {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	var ids []string
+
+	for k := range s.storage {
+		ids = append(ids, k)
+	}
+
+	return &ids, nil
+}
+
 func (s *MemoryStorage) Update(
 	ctx context.Context,
 	metric *model.Metric,

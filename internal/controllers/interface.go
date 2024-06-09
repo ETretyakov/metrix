@@ -6,8 +6,9 @@ import (
 )
 
 type MetricsController interface {
-	Set(ctx context.Context, vars map[string]string) (*model.Metric, error)
+	Set(ctx context.Context, metricIn *model.Metric) (*model.Metric, error)
 	Get(ctx context.Context, metricID string) (*model.Metric, error)
+	GetIDs(ctx context.Context) (*[]string, error)
 }
 
 type HealthController interface {
