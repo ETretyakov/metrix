@@ -211,6 +211,6 @@ func (s *MemoryStorage) restore() error {
 	return nil
 }
 
-func (r *MemoryStorage) PingDB() bool {
+func (s *MemoryStorage) PingDB() bool {
 	return true
 }
