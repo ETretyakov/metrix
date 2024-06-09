@@ -71,7 +71,7 @@ func main() {
 		ctx,
 		command,
 		db,
-		*&cfg.Postgres.MigrationFolder,
+		cfg.Postgres.MigrationFolder,
 		arguments...,
 	); err != nil {
 		log.Fatalf("goose %v: %v", command, err)
