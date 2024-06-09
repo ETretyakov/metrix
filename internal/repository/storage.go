@@ -30,7 +30,7 @@ func (s *MemoryStorage) Create(
 	s.storage[metric.ID] = *metric
 
 	if s.saveSync {
-		err := s.backUp()
+		err := s.writeToFile()
 		if err != nil {
 			return nil, fmt.Errorf("failed to backup storage: %w", err)
 		}
@@ -79,7 +79,7 @@ func (s *MemoryStorage) Update(
 	s.storage[metric.ID] = *metric
 
 	if s.saveSync {
-		err := s.backUp()
+		err := s.writeToFile()
 		if err != nil {
 			return nil, fmt.Errorf("failed to backup storage: %w", err)
 		}
@@ -98,7 +98,7 @@ func (s *MemoryStorage) Delete(
 	delete(s.storage, metricID)
 
 	if s.saveSync {
-		err := s.backUp()
+		err := s.writeToFile()
 		if err != nil {
 			return fmt.Errorf("failed to backup storage: %w", err)
 		}
@@ -127,7 +127,7 @@ func NewInMemmoryStorage(
 	}
 
 	if restore {
-		ms.Restore()
+		ms.restore()
 	}
 
 	if !saveSync {
@@ -142,12 +142,12 @@ func (s *MemoryStorage) PeriodicBackup(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			err := s.BackUp()
+			err := s.muxWriteToFile()
 			if err != nil {
 				logger.Warn(ctx, fmt.Sprintf("failed to backup db %s", err))
 			}
 		case <-ctx.Done():
-			err := s.BackUp()
+			err := s.muxWriteToFile()
 			if err != nil {
 				logger.Warn(ctx, fmt.Sprintf("failed to backup db %s", err))
 			}
@@ -157,11 +157,11 @@ func (s *MemoryStorage) PeriodicBackup(ctx context.Context) {
 	}
 }
 
-func (s *MemoryStorage) BackUp() error {
+func (s *MemoryStorage) muxWriteToFile() error {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
-	err := s.backUp()
+	err := s.writeToFile()
 	if err != nil {
 		return fmt.Errorf("failed to back up: %w", err)
 	}
@@ -169,7 +169,7 @@ func (s *MemoryStorage) BackUp() error {
 	return nil
 }
 
-func (s *MemoryStorage) backUp() error {
+func (s *MemoryStorage) writeToFile() error {
 	if s.filePath == "" {
 		return nil
 	}
@@ -187,7 +187,7 @@ func (s *MemoryStorage) backUp() error {
 	return nil
 }
 
-func (s *MemoryStorage) Restore() error {
+func (s *MemoryStorage) restore() error {
 	if s.filePath == "" {
 		return nil
 	}
