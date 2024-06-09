@@ -12,6 +12,7 @@ func (s *Server) setupRoutes() *mux.Router {
 	mux := mux.NewRouter()
 
 	// Health handlers
+	mux.HandleFunc("/ping", s.health.PingDB)
 	mux.HandleFunc("/liveness", s.health.LivenessState)
 	mux.HandleFunc("/readiness", s.health.ReadinessState)
 

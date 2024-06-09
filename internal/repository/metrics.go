@@ -139,3 +139,12 @@ func (r *MetricRepositoryImpl) Delete(
 
 	return nil
 }
+
+func (r *MetricRepositoryImpl) PingDB() bool {
+	err := r.gr.DB.Ping()
+	if err != nil {
+		return false
+	}
+
+	return true
+}

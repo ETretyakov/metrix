@@ -37,7 +37,7 @@ func Run(ctx context.Context, cfg *config.Config) (err error) {
 		cfg.Restore,
 	)
 
-	healthHandlers := handlers.NewHealthHandlers()
+	healthHandlers := handlers.NewHealthHandlers(repoGroup)
 	metricsHandlers := handlers.NewMetricsHandlers(repoGroup)
 
 	httpServer := http.New(

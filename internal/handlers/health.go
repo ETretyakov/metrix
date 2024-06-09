@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"metrix/internal/controllers"
+	"metrix/internal/repository"
 	"net/http"
 )
 
@@ -9,9 +10,10 @@ type HealthHandlers struct {
 	controller controllers.HealthController
 }
 
-func NewHealthHandlers() *HealthHandlers {
+func NewHealthHandlers(repoGroup *repository.Group) *HealthHandlers {
+	controller := controllers.NewHealthController(repoGroup)
 	return &HealthHandlers{
-		controller: controllers.NewHealthController(),
+		controller: controller,
 	}
 }
 
@@ -34,6 +36,15 @@ func (h *HealthHandlers) ReadinessState(w http.ResponseWriter, r *http.Request) 
 
 func (h *HealthHandlers) LivenessState(w http.ResponseWriter, r *http.Request) {
 	if h.controller.LivenessState() {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("OK"))
+		return
+	}
+	w.WriteHeader(http.StatusInternalServerError)
+}
+
+func (h *HealthHandlers) PingDB(w http.ResponseWriter, r *http.Request) {
+	if h.controller.PingDB() {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("OK"))
 		return

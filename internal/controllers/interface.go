@@ -16,4 +16,5 @@ type HealthController interface {
 	SetLiveness(state bool)
 	ReadinessState() bool
 	LivenessState() bool
+	PingDB() bool
 }

@@ -210,3 +210,7 @@ func (s *MemoryStorage) Restore() error {
 
 	return nil
 }
+
+func (r *MemoryStorage) PingDB() bool {
+	return true
+}

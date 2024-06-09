@@ -18,6 +18,7 @@ type MetricRepository interface {
 	Update(ctx context.Context, metric *model.Metric) (*model.Metric, error)
 	Delete(ctx context.Context, metricID string) error
 	ReadIDs(ctx context.Context) (*[]string, error)
+	PingDB() bool
 }
 
 type Group struct {

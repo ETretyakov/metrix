@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"context"
+	"metrix/internal/repository"
 	"sync"
 	"testing"
 
@@ -8,7 +10,9 @@ import (
 )
 
 func TestHealthControllerLivenessState(t *testing.T) {
-	controller := NewHealthController()
+	ctx := context.Background()
+	repoGroup := repository.NewGroup(ctx, nil, "", 0, false)
+	controller := NewHealthController(repoGroup)
 
 	assert.Equal(t, false, controller.LivenessState())
 
@@ -27,7 +31,9 @@ func TestHealthControllerLivenessState(t *testing.T) {
 }
 
 func TestHealthControllerReadinessState(t *testing.T) {
-	controller := NewHealthController()
+	ctx := context.Background()
+	repoGroup := repository.NewGroup(ctx, nil, "", 0, false)
+	controller := NewHealthController(repoGroup)
 
 	assert.Equal(t, false, controller.ReadinessState())
 

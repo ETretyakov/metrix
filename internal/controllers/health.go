@@ -1,16 +1,21 @@
 package controllers
 
-import "sync"
+import (
+	"metrix/internal/repository"
+	"sync"
+)
 
 type HealthControllerImpl struct {
+	repoGroup *repository.Group
+
 	readinessMu sync.RWMutex
 	readiness   bool
 	livenessMu  sync.RWMutex
 	liveness    bool
 }
 
-func NewHealthController() *HealthControllerImpl {
-	return &HealthControllerImpl{}
+func NewHealthController(repoGroup *repository.Group) *HealthControllerImpl {
+	return &HealthControllerImpl{repoGroup: repoGroup}
 }
 
 func (h *HealthControllerImpl) SetReadiness(state bool) {
@@ -35,4 +40,8 @@ func (h *HealthControllerImpl) LivenessState() bool {
 	h.livenessMu.RLock()
 	defer h.livenessMu.RUnlock()
 	return h.liveness
+}
+
+func (h *HealthControllerImpl) PingDB() bool {
+	return h.repoGroup.MetricRepo.PingDB()
 }
