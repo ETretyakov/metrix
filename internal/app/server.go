@@ -12,8 +12,8 @@ import (
 	"metrix/internal/config"
 	"metrix/internal/handlers"
 	"metrix/internal/http"
-	"metrix/internal/logger"
 	"metrix/internal/repository"
+	"metrix/pkg/logger"
 
 	"github.com/jmoiron/sqlx"
 )

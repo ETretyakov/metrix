@@ -6,16 +6,15 @@ import (
 	"math/rand"
 	"metrix/pkg/agent/config"
 	"metrix/pkg/client"
+	"metrix/pkg/logger"
 	"reflect"
 	"runtime"
 	"sync"
 	"time"
-
-	"github.com/rs/zerolog/log"
 )
 
 const (
-	stageLogKey       = "Stage"
+	stageLogKey       = "stage"
 	stageLogWatchVal  = "reading-metrics"
 	stageLogReportVal = "reporting-metrics"
 )
@@ -63,27 +62,39 @@ func (w *Watcher) Start(ctx context.Context, interval time.Duration) {
 				case reflect.Uint32:
 					val, ok := field.Interface().(uint32)
 					if !ok {
-						log.Warn().Caller().Str(stageLogKey, stageLogWatchVal).
-							Msg("failed to assert filetype uint32")
+						logger.Warn(
+							ctx,
+							"failed to assert filetype uint32",
+							stageLogKey, stageLogWatchVal,
+						)
 					}
 					w.Metrics[k] = float64(val)
 				case reflect.Uint64:
 					val, ok := field.Interface().(uint64)
 					if !ok {
-						log.Warn().Caller().Str(stageLogKey, stageLogWatchVal).
-							Msg("failed to assert filetype uint64")
+						logger.Warn(
+							ctx,
+							"failed to assert filetype uint64",
+							stageLogKey, stageLogWatchVal,
+						)
 					}
 					w.Metrics[k] = float64(val)
 				case reflect.Float64:
 					val, ok := field.Interface().(float64)
 					if !ok {
-						log.Warn().Caller().Str(stageLogKey, stageLogWatchVal).
-							Msg("failed to assert filetype float64")
+						logger.Warn(
+							ctx,
+							"failed to assert filetype float64",
+							stageLogKey, stageLogWatchVal,
+						)
 					}
 					w.Metrics[k] = val
 				default:
-					log.Warn().Caller().Str(stageLogKey, stageLogWatchVal).
-						Msg(fmt.Sprintf("unsupported metric field type: %s", field.Kind()))
+					logger.Warn(
+						ctx,
+						fmt.Sprintf("unsupported metric field type: %s", field.Kind()),
+						stageLogKey, stageLogWatchVal,
+					)
 				}
 			}
 			w.mux.Unlock()
@@ -99,32 +110,52 @@ func (w *Watcher) Report(ctx context.Context, baseURL string, interval time.Dura
 	for {
 		select {
 		case <-ticker.C:
-			w.mux.Lock()
-			log.Info().Caller().Str("Stage", "reporting-metrics").
-				Msg(fmt.Sprintf("sending metrics: %+v", w))
-
+			metricsVal := map[string]float64{}
+			w.mux.RLock()
 			for k, v := range w.Metrics {
+				metricsVal[k] = v
+			}
+			w.mux.RUnlock()
+
+			logger.Info(
+				ctx,
+				fmt.Sprintf("sending metrics: %+v", metricsVal),
+				stageLogKey, stageLogReportVal,
+			)
+
+			for k, v := range metricsVal {
 				err := client.SendMetric(ctx, baseURL, client.GaugeType, k, v)
 				if err != nil {
-					log.Error().Err(err).Str(stageLogKey, stageLogReportVal).
-						Msg(fmt.Sprintf("failed to report metrics: %s", err))
+					logger.Error(
+						ctx,
+						fmt.Sprintf("failed to report metrics: %s", err),
+						err,
+						stageLogKey, stageLogReportVal,
+					)
 				}
 			}
 
 			err := client.SendMetric(ctx, baseURL, client.CounterType, "PollCount", w.PollCount)
 			if err != nil {
-				log.Error().Err(err).Str(stageLogKey, stageLogReportVal).
-					Msg(fmt.Sprintf("failed to report PollCount metric: %s", err))
+				logger.Error(
+					ctx,
+					fmt.Sprintf("failed to report PollCount metric: %s", err),
+					err,
+					stageLogKey, stageLogReportVal,
+				)
 			}
 
 			err = client.SendMetric(ctx, baseURL, client.GaugeType, "RandomValue", w.RandomValue)
 			if err != nil {
-				log.Error().Err(err).Str(stageLogKey, stageLogReportVal).
-					Msg(fmt.Sprintf("failed to report RandomValue metric: %s", err))
+				logger.Error(
+					ctx,
+					fmt.Sprintf("failed to report RandomValue metric: %s", err),
+					err,
+					stageLogKey, stageLogReportVal,
+				)
 			}
 
 			w.PollCount = 0
-			w.mux.Unlock()
 		case <-ctx.Done():
 			ticker.Stop()
 			return

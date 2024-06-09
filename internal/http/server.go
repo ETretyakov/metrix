@@ -6,7 +6,7 @@ import (
 	"metrix/internal/closer"
 	"metrix/internal/config"
 	"metrix/internal/handlers"
-	"metrix/internal/logger"
+	"metrix/pkg/logger"
 	"net/http"
 )
 

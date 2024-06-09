@@ -6,10 +6,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"metrix/pkg/logger"
 	"time"
 
 	"github.com/go-resty/resty/v2"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -98,15 +98,15 @@ func SendMetric(
 		)
 	}
 
-	log.Info().Caller().Str("Stage", "sending-metrics").
-		Msg(
-			fmt.Sprintf(
-				"metrics has been sent successfully: widget_type=%s name=%s value=%f",
-				widgetType,
-				name,
-				value,
-			),
-		)
+	logger.Info(
+		ctx,
+		fmt.Sprintf(
+			"metrics has been sent successfully: widget_type=%s name=%s value=%f",
+			widgetType,
+			name,
+			value,
+		),
+	)
 
 	return nil
 }

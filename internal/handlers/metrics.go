@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"metrix/internal/controllers"
-	"metrix/internal/logger"
 	"metrix/internal/repository"
 	"metrix/internal/validators"
+	"metrix/pkg/logger"
 	"net/http"
 
 	"github.com/gorilla/mux"

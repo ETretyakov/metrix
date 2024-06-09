@@ -2,7 +2,7 @@ package closer
 
 import (
 	"context"
-	"metrix/internal/logger"
+	"metrix/pkg/logger"
 )
 
 var globalCloser = New()

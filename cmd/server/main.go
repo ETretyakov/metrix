@@ -5,7 +5,7 @@ import (
 	"log"
 	"metrix/internal/app"
 	"metrix/internal/config"
-	"metrix/internal/logger"
+	"metrix/pkg/logger"
 	"os"
 	"os/signal"
 	"syscall"

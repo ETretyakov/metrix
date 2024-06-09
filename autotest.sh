@@ -13,9 +13,14 @@ go build -o cmd/agent/agent cmd/agent/*.go
 ./metricstest -test.v -test.run=^TestIteration4$ \
               -agent-binary-path=cmd/agent/agent \
               -binary-path=cmd/server/server \
-              -server-port=8888 \
+              -server-port=8080 \
               -source-path=.
 ./metricstest -test.v -test.run=^TestIteration5$ \
+              -agent-binary-path=cmd/agent/agent \
+              -binary-path=cmd/server/server \
+              -server-port=8888 \
+              -source-path=.
+./metricstest -test.v -test.run=^TestIteration6$ \
               -agent-binary-path=cmd/agent/agent \
               -binary-path=cmd/server/server \
               -server-port=8888 \

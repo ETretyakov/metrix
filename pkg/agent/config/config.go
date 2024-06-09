@@ -3,52 +3,31 @@ package config
 import (
 	"errors"
 	"fmt"
-	"os"
 	"slices"
-	"time"
 
 	"github.com/caarlos0/env"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"github.com/spf13/pflag"
 )
 
-const (
-	stageLogKey = "Stage"
-	stageLogVal = "loading-config"
-)
-
-type Config struct { //nolint:govet // I want it be pretty
-	Address        string   `env:"ADDRESS"         mapstructure:"ADDRESS"         envDefault:"localhost:8080"` //nolint:lll // I want it be pretty
-	PollInterval   int      `env:"POLL_INTERVAL"   mapstructure:"POLL_INTERVAL"   envDefault:"2"`
-	ReportInterval int      `env:"REPORT_INTERVAL" mapstructure:"REPORT_INTERVAL" envDefault:"10"`
-	Metrics        []string `env:"AGT_METRICS"     mapstructure:"AGT_METRICS"     envDefault:"*"`
+type Config struct {
+	Address        string   `env:"ADDRESS"         envDefault:"localhost:8080" flag:"address"         flagShort:"a" flagDescription:"http adress"`
+	PollInterval   int64    `env:"POLL_INTERVAL"   envDefault:"2"              flag:"poll_interval"   flagShort:"p" flagDescription:"interval between polling"`
+	ReportInterval int64    `env:"REPORT_INTERVAL" envDefault:"10"             flag:"report_interval" flagShort:"r" flagDescription:"interval between reporting"`
+	Metrics        []string `env:"AGT_METRICS"     envDefault:"*"`
+	LogLevel       string   `env:"LOG_LEVEL"       envDefault:"info"           flag:"log_level"   flagShort:"l" flagDescription:"level for logging"`
 }
 
-func LoadConfig() (*Config, error) {
-	log.Logger = log.Output( //nolint:reassign // documentation approach
-		zerolog.ConsoleWriter{
-			Out:        os.Stderr,
-			TimeFormat: time.RFC3339,
-		},
-	)
-
-	log.Info().Caller().Str(stageLogKey, stageLogVal).
-		Msg("started config loading")
-	config := &Config{}
-	if err := env.Parse(config); err != nil {
+func NewConfig() (*Config, error) {
+	cfg := &Config{}
+	if err := env.Parse(cfg); err != nil {
 		return nil, fmt.Errorf("env.Parse: %w", err)
 	}
 
-	if len(config.Metrics) == 0 {
+	if len(cfg.Metrics) == 0 {
 		return nil, errors.New("metrics were not provided")
 	}
 
-	if slices.Contains(config.Metrics, "*") {
-		log.Info().Caller().Str(stageLogKey, stageLogVal).
-			Msg("detected * in metrics - loading all metrics")
-
-		config.Metrics = []string{
+	if slices.Contains(cfg.Metrics, "*") {
+		cfg.Metrics = []string{
 			"Alloc",
 			"BuckHashSys",
 			"Frees",
@@ -79,33 +58,7 @@ func LoadConfig() (*Config, error) {
 		}
 	}
 
-	var addr string
-	pflag.StringVarP(&addr, "address", "a", "", "the address for the api to listen on. Host and port separated by ':'")
+	ParseFlags(cfg)
 
-	var pollInterval int
-	pflag.IntVarP(&pollInterval, "poll interval", "r", 0, "the number of seconds - interval between polling")
-
-	var reportInterval int
-	pflag.IntVarP(&reportInterval, "report interval", "p", 0, "the number of seconds - interval between reporting")
-	pflag.Parse()
-
-	envAddress := os.Getenv("ADDRESS")
-	if len(envAddress) == 0 && addr != "" {
-		config.Address = addr
-	}
-
-	envPollInterval := os.Getenv("POLL_INTERVAL")
-	if len(envPollInterval) == 0 && pollInterval != 0 {
-		config.PollInterval = pollInterval
-	}
-
-	envReportInterval := os.Getenv("REPORT_INTERVAL")
-	if len(envReportInterval) == 0 && reportInterval != 0 {
-		config.ReportInterval = reportInterval
-	}
-
-	log.Info().Caller().Str(stageLogKey, stageLogVal).
-		Msg(fmt.Sprintf("config: %+v", config))
-
-	return config, nil
+	return cfg, nil
 }

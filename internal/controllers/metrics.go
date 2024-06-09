@@ -3,10 +3,10 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"metrix/internal/logger"
 	"metrix/internal/model"
 	"metrix/internal/repository"
 	"metrix/internal/validators"
+	"metrix/pkg/logger"
 )
 
 var (

@@ -9,7 +9,7 @@ import (
 
 	"metrix/internal/closer"
 	"metrix/internal/config"
-	"metrix/internal/logger"
+	"metrix/pkg/logger"
 
 	_ "github.com/jackc/pgx/stdlib"
 )
