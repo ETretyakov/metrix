@@ -54,3 +54,11 @@ if [ "$increment" = "7" ]; then
                   -server-port=8888 \
                   -source-path=.
 fi
+
+if [ "$increment" = "8" ]; then
+    ./metricstest -test.v -test.run=^TestIteration8$ \
+                  -agent-binary-path=cmd/agent/agent \
+                  -binary-path=cmd/server/server \
+                  -server-port=8888 \
+                  -source-path=.
+fi

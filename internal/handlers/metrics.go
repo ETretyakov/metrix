@@ -169,6 +169,8 @@ func (h *MetricsHandlers) GetWithModel(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *MetricsHandlers) GetIDs(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
 	ctx := r.Context()
 
 	ids, err := h.controller.GetIDs(ctx)
