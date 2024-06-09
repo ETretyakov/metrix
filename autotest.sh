@@ -62,3 +62,12 @@ if [ "$increment" = "8" ]; then
                   -server-port=8888 \
                   -source-path=.
 fi
+
+if [ "$increment" = "9" ]; then
+    ./metricstest -test.v -test.run=^TestIteration9$ \
+                  -agent-binary-path=cmd/agent/agent \
+                  -binary-path=cmd/server/server \
+                  -file-storage-path=/tmp/backup.json \
+                  -server-port=8888 \
+                  -source-path=.
+fi
