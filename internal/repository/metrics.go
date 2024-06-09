@@ -31,6 +31,9 @@ func (r *MetricRepositoryImpl) Create(
 	}
 
 	tx, err := r.gr.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
 	defer tx.Commit()
 
 	if _, err := tx.ExecContext(ctx, qu); err != nil {

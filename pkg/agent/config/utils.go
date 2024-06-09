@@ -23,7 +23,7 @@ func ParseFlags(cfg *Config) {
 	var str string
 	strValues := map[string]*string{}
 
-	var number int
+	var number int64
 	numberValues := map[string]*int64{}
 
 	var boolean bool

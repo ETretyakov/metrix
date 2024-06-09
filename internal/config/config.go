@@ -38,9 +38,8 @@ type Config struct {
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
-	err := env.Parse(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse envs: %w", err)
+	if err := env.Parse(cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse server envs: %w", err)
 	}
 
 	ParseFlags(cfg)

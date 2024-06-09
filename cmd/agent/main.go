@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -26,6 +27,8 @@ func main() {
 	}
 
 	logger.InitDefault(cfg.LogLevel)
+
+	logger.Info(ctx, fmt.Sprintf("starting agent with config: %+v", cfg))
 
 	logger.Info(ctx, "building watcher")
 	w := watcher.NewWatcher(*cfg)

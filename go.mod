@@ -1,6 +1,6 @@
 module metrix
 
-go 1.21.9
+go 1.21.11
 
 require (
 	github.com/caarlos0/env v3.5.0+incompatible
