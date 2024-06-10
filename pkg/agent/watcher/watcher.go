@@ -115,6 +115,8 @@ func (w *Watcher) Report(
 	for {
 		select {
 		case <-ticker.C:
+			var err error
+
 			metrics := []*client.Metrics{}
 
 			w.mux.RLock()
@@ -149,7 +151,7 @@ func (w *Watcher) Report(
 			w.mux.RUnlock()
 
 			if useBatching {
-				err := client.SendMetricBatch(ctx, baseURL, metrics)
+				err = client.SendMetricBatch(ctx, baseURL, metrics)
 				if err != nil {
 					logger.Error(
 						ctx,
@@ -159,7 +161,7 @@ func (w *Watcher) Report(
 					)
 				}
 			} else {
-				err := client.SendMetric(ctx, baseURL, metrics)
+				err = client.SendMetric(ctx, baseURL, metrics)
 				if err != nil {
 					logger.Error(
 						ctx,
@@ -170,7 +172,9 @@ func (w *Watcher) Report(
 				}
 			}
 
-			w.PollCount = 0
+			if err == nil {
+				w.PollCount = 0
+			}
 		case <-ctx.Done():
 			ticker.Stop()
 			return

@@ -84,11 +84,19 @@ func (r *MetricRepositoryImpl) ReadIDs(ctx context.Context) (*[]string, error) {
 		return nil, fmt.Errorf("read ids metric error during query building: %w", err)
 	}
 
+	rows, err := r.gr.DB.QueryxContext(ctx, qu)
+	if err != nil {
+		return nil, fmt.Errorf("read metrics error during querying: %w", err)
+	}
+
 	var ids []string
-	row := r.gr.DB.QueryRowxContext(ctx, qu)
-	err = row.StructScan(&ids)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, fmt.Errorf("read metric error during scan row: %w", err)
+	for rows.Next() {
+		id := ""
+		err := rows.Scan(&id)
+		if err != nil {
+			return nil, fmt.Errorf("read metrics error during scan rows: %w", err)
+		}
+		ids = append(ids, id)
 	}
 
 	if err == sql.ErrNoRows {
@@ -98,7 +106,10 @@ func (r *MetricRepositoryImpl) ReadIDs(ctx context.Context) (*[]string, error) {
 	return &ids, nil
 }
 
-func (r *MetricRepositoryImpl) ReadMany(ctx context.Context, metricIDs []string) (*[]model.Metric, error) {
+func (r *MetricRepositoryImpl) ReadMany(
+	ctx context.Context,
+	metricIDs []string,
+) (*[]model.Metric, error) {
 	inIDs := []any{}
 	for _, id := range metricIDs {
 		inIDs = append(inIDs, id)
