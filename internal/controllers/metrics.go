@@ -54,6 +54,9 @@ func (m *MetricControllerImpl) SetMany(
 	}
 
 	curMetrics, err := m.repoGroup.MetricRepo.ReadMany(ctx, metricIDs)
+	if err != nil {
+		return false, fmt.Errorf("failed to get current metrics: %w", err)
+	}
 	mapCurMetrics := map[string]model.Metric{}
 	if curMetrics != nil {
 		for _, metric := range *curMetrics {

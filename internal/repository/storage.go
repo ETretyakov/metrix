@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/fs"
 	"metrix/internal/model"
@@ -219,10 +218,9 @@ func (s *MemoryStorage) ReadMany(ctx context.Context, metricIDs []string) (*[]mo
 	metrics := []model.Metric{}
 	for _, id := range metricIDs {
 		metric, ok := s.storage[id]
-		if !ok {
-			return nil, errors.New("failed to find metric by ID")
+		if ok {
+			metrics = append(metrics, metric)
 		}
-		metrics = append(metrics, metric)
 	}
 
 	return &metrics, nil
