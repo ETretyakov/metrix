@@ -3,45 +3,30 @@ package main
 import (
 	"context"
 	"log"
+	"metrix/internal/app"
 	"metrix/internal/config"
-	"metrix/internal/infrastructure"
-	"metrix/internal/logger"
+	"metrix/pkg/logger"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func main() {
-	config, err := config.LoadConfig()
-	if err != nil {
-		err := logger.Initialize("logs.jsonl", "debug")
-		if err != nil {
-			logger.Log.Fatalf("failed to load config: %w", err)
-		} else {
-			log.Fatalf("failed to load config: %s", err)
-		}
-	}
-
-	logger.Initialize(config.LogFile, config.LogLevel)
-
-	logger.Log.Infof("configuration %+v", config)
-
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, cancel := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
 	defer cancel()
 
-	storageHandler, err := infrastructure.NewStorageHandler(
-		ctx,
-		config.FileStoragePath,
-		config.StoreInterval,
-		config.Restore,
-	)
+	cfg, err := config.NewConfig()
 	if err != nil {
-		logger.Log.Fatalf("failed to connect to the storage: %w", err)
+		logger.Error(ctx, "failed to read config", err)
 	}
 
-	infrastructure.Dispatch(
-		ctx,
-		config.Address,
-		storageHandler,
-	)
+	logger.InitDefault(cfg.LogLevel)
+
+	if err := app.Run(ctx, cfg); err != nil {
+		log.Fatalf("error running http server: %v", err)
+	}
 }
