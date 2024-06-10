@@ -28,6 +28,9 @@ func (s *Server) setupRoutes() *mux.Router {
 	mux.HandleFunc("/value/", s.metrics.GetWithModel).
 		Methods(http.MethodPost).
 		Headers("Content-Type", "application/json")
+	mux.HandleFunc("/updates/", s.metrics.SetMany).
+		Methods(http.MethodPost).
+		Headers("Content-Type", "application/json")
 
 	mux.Use(middlewares.LoggingMiddleware)
 	mux.Use(middlewares.GzipMiddleware)

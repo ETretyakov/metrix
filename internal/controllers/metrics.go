@@ -44,6 +44,43 @@ func (m *MetricControllerImpl) Set(
 	return metric, nil
 }
 
+func (m *MetricControllerImpl) SetMany(
+	ctx context.Context,
+	metricsIn []model.Metric,
+) (bool, error) {
+	metricIDs := []string{}
+	for _, m := range metricsIn {
+		metricIDs = append(metricIDs, m.ID)
+	}
+
+	curMetrics, err := m.repoGroup.MetricRepo.ReadMany(ctx, metricIDs)
+	mapCurMetrics := map[string]model.Metric{}
+	if curMetrics != nil {
+		for _, metric := range *curMetrics {
+			mapCurMetrics[metric.ID] = metric
+		}
+	}
+
+	newMetricsIn := []model.Metric{}
+	for _, metric := range metricsIn {
+		curMetric, ok := mapCurMetrics[metric.ID]
+		if ok {
+			curMetric.SetValue(metric.Delta, metric.Value)
+			newMetricsIn = append(newMetricsIn, curMetric)
+		} else {
+			newMetricsIn = append(newMetricsIn, metric)
+		}
+	}
+
+	status, err := m.repoGroup.MetricRepo.UpsertMany(ctx, newMetricsIn)
+	if err != nil {
+		logger.Debug(ctx, fmt.Sprintf("failed to upsert metrics: %s", err))
+		return false, fmt.Errorf("failed to upsert metrics: %w", err)
+	}
+
+	return status, nil
+}
+
 func (m *MetricControllerImpl) Get(
 	ctx context.Context,
 	metricID string,

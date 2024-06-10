@@ -105,26 +105,61 @@ func (w *Watcher) Start(ctx context.Context, interval time.Duration) {
 	}
 }
 
-func (w *Watcher) Report(ctx context.Context, baseURL string, interval time.Duration) {
+func (w *Watcher) Report(
+	ctx context.Context,
+	baseURL string,
+	interval time.Duration,
+	useBatching bool,
+) {
 	ticker := time.NewTicker(interval)
 	for {
 		select {
 		case <-ticker.C:
-			metricsVal := map[string]float64{}
+			metrics := []*client.Metrics{}
+
 			w.mux.RLock()
 			for k, v := range w.Metrics {
-				metricsVal[k] = v
+				metrics = append(
+					metrics,
+					&client.Metrics{
+						ID:    k,
+						MType: "gauge",
+						Value: func() *float64 { i := float64(v); return &i }(),
+					},
+				)
 			}
-			w.mux.RUnlock()
 
-			logger.Info(
-				ctx,
-				fmt.Sprintf("sending metrics: %+v", metricsVal),
-				stageLogKey, stageLogReportVal,
+			metrics = append(
+				metrics,
+				&client.Metrics{
+					ID:    "PollCount",
+					MType: "counter",
+					Delta: func() *int64 { i := int64(w.PollCount); return &i }(),
+				},
 			)
 
-			for k, v := range metricsVal {
-				err := client.SendMetric(ctx, baseURL, client.GaugeType, k, v)
+			metrics = append(
+				metrics,
+				&client.Metrics{
+					ID:    "RandomValue",
+					MType: "gauge",
+					Value: func() *float64 { i := float64(w.RandomValue); return &i }(),
+				},
+			)
+			w.mux.RUnlock()
+
+			if useBatching {
+				err := client.SendMetricBatch(ctx, baseURL, metrics)
+				if err != nil {
+					logger.Error(
+						ctx,
+						fmt.Sprintf("failed to report metrics as batch: %s", err),
+						err,
+						stageLogKey, stageLogReportVal,
+					)
+				}
+			} else {
+				err := client.SendMetric(ctx, baseURL, metrics)
 				if err != nil {
 					logger.Error(
 						ctx,
@@ -133,26 +168,6 @@ func (w *Watcher) Report(ctx context.Context, baseURL string, interval time.Dura
 						stageLogKey, stageLogReportVal,
 					)
 				}
-			}
-
-			err := client.SendMetric(ctx, baseURL, client.CounterType, "PollCount", w.PollCount)
-			if err != nil {
-				logger.Error(
-					ctx,
-					fmt.Sprintf("failed to report PollCount metric: %s", err),
-					err,
-					stageLogKey, stageLogReportVal,
-				)
-			}
-
-			err = client.SendMetric(ctx, baseURL, client.GaugeType, "RandomValue", w.RandomValue)
-			if err != nil {
-				logger.Error(
-					ctx,
-					fmt.Sprintf("failed to report RandomValue metric: %s", err),
-					err,
-					stageLogKey, stageLogReportVal,
-				)
 			}
 
 			w.PollCount = 0

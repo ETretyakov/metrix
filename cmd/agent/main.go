@@ -10,6 +10,7 @@ import (
 
 	"metrix/pkg/agent/config"
 	"metrix/pkg/agent/watcher"
+	"metrix/pkg/client"
 	"metrix/pkg/logger"
 )
 
@@ -26,6 +27,15 @@ func main() {
 		logger.Error(ctx, "failed to read config", err)
 	}
 
+	useBatching, err := client.CheckBatching(
+		ctx,
+		"http://"+cfg.Address,
+	)
+	if err != nil {
+		logger.Fatal(ctx, "server is not responding", err)
+	}
+	cfg.UseBatching = useBatching
+
 	logger.InitDefault(cfg.LogLevel)
 
 	logger.Info(ctx, fmt.Sprintf("starting agent with config: %+v", cfg))
@@ -41,5 +51,6 @@ func main() {
 		ctx,
 		"http://"+cfg.Address,
 		time.Second*time.Duration(cfg.ReportInterval),
+		useBatching,
 	)
 }

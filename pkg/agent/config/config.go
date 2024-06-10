@@ -14,6 +14,7 @@ type Config struct {
 	ReportInterval int64    `env:"REPORT_INTERVAL" envDefault:"10"             flag:"report_interval" flagShort:"r" flagDescription:"interval between reporting"`
 	LogLevel       string   `env:"LOG_LEVEL"       envDefault:"info"           flag:"log_level"       flagShort:"l" flagDescription:"level for logging"`
 	Metrics        []string `env:"AGT_METRICS"     envDefault:"*"`
+	UseBatching    bool     `env:"USE_BATCHING"    envDefault:"true"`
 }
 
 func NewConfig() (*Config, error) {

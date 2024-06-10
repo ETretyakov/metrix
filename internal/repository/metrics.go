@@ -25,7 +25,11 @@ func (r *MetricRepositoryImpl) Create(
 	ctx context.Context,
 	metric *model.Metric,
 ) (*model.Metric, error) {
-	qu, _, err := goqu.Insert(metricTName).Rows(metric).Returning("id").ToSQL()
+	qu, _, err := goqu.
+		Insert(metricTName).
+		Rows(metric).
+		Returning("id").
+		ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("create metric error during query building: %w", err)
 	}
@@ -71,9 +75,7 @@ func (r *MetricRepositoryImpl) Read(
 	return &newMetric, nil
 }
 
-func (r *MetricRepositoryImpl) ReadIDs(
-	ctx context.Context,
-) (*[]string, error) {
+func (r *MetricRepositoryImpl) ReadIDs(ctx context.Context) (*[]string, error) {
 	qu, _, err := goqu.
 		Select("id").
 		From(metricTName).
@@ -96,6 +98,43 @@ func (r *MetricRepositoryImpl) ReadIDs(
 	return &ids, nil
 }
 
+func (r *MetricRepositoryImpl) ReadMany(ctx context.Context, metricIDs []string) (*[]model.Metric, error) {
+	inIDs := []any{}
+	for _, id := range metricIDs {
+		inIDs = append(inIDs, id)
+	}
+
+	qu, _, err := goqu.
+		Select(&model.Metric{}).
+		From(metricTName).
+		Where(goqu.C("id").In(inIDs...)).
+		ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("read metrics error during query building: %w", err)
+	}
+
+	rows, err := r.gr.DB.QueryxContext(ctx, qu)
+	if err != nil {
+		return nil, fmt.Errorf("read metrics error during querying: %w", err)
+	}
+
+	newMetrics := []model.Metric{}
+	for rows.Next() {
+		metric := model.Metric{}
+		err := rows.StructScan(&metric)
+		if err != nil {
+			return nil, fmt.Errorf("read metrics error during scan rows: %w", err)
+		}
+		newMetrics = append(newMetrics, metric)
+	}
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	return &newMetrics, nil
+}
+
 func (r *MetricRepositoryImpl) Update(
 	ctx context.Context,
 	metric *model.Metric,
@@ -109,7 +148,13 @@ func (r *MetricRepositoryImpl) Update(
 		return nil, fmt.Errorf("create metric error during query building: %w", err)
 	}
 
-	if _, err := r.gr.ExecContext(ctx, qu); err != nil {
+	tx, err := r.gr.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Commit()
+
+	if _, err := tx.ExecContext(ctx, qu); err != nil {
 		return nil, fmt.Errorf("update metric error during execute query: %w", err)
 	}
 
@@ -119,6 +164,53 @@ func (r *MetricRepositoryImpl) Update(
 	}
 
 	return metricOut, nil
+}
+
+func (r *MetricRepositoryImpl) UpsertMany(
+	ctx context.Context,
+	metrics []model.Metric,
+) (bool, error) {
+	tx, err := r.gr.BeginTxx(ctx, nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Commit()
+
+	for _, m := range metrics {
+		metric, err := r.Read(ctx, m.ID)
+		if err != nil {
+			return false, fmt.Errorf("failed to get metric: %w", err)
+		}
+
+		qu := ""
+		if metric == nil {
+			qu, _, err = goqu.
+				Insert(metricTName).
+				Rows(m).
+				Returning("id").
+				ToSQL()
+			if err != nil {
+				return false, fmt.Errorf("create metric error during query building: %w", err)
+			}
+			if _, err := tx.ExecContext(ctx, qu); err != nil {
+				return false, fmt.Errorf("failed to create metric: %w", err)
+			}
+		} else {
+			qu, _, err = goqu.
+				Update(metricTName).
+				Set(m).
+				Where(goqu.Ex{"id": metric.ID}).
+				ToSQL()
+			if err != nil {
+				return false, fmt.Errorf("create metric error during query building: %w", err)
+			}
+			if _, err := tx.ExecContext(ctx, qu); err != nil {
+				return false, fmt.Errorf("failed to update metric: %w", err)
+			}
+		}
+	}
+
+	return true, nil
 }
 
 func (r *MetricRepositoryImpl) Delete(

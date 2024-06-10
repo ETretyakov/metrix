@@ -99,6 +99,37 @@ func (h *MetricsHandlers) SetWithModel(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (h *MetricsHandlers) SetMany(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	ctx := r.Context()
+	metricsIn, err := metricValidator.ManyFromBody(r.Body)
+	if err != nil {
+		var parsingValueError validators.ParsingValueError
+		if errors.As(err, &parsingValueError) {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		logger.Warn(ctx, fmt.Sprintf("failed to parse payload: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, err = h.controller.SetMany(ctx, metricsIn)
+	if err != nil {
+		var parsingValueError validators.ParsingValueError
+		if errors.As(err, &parsingValueError) {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		logger.Warn(ctx, fmt.Sprintf("failed to trigger controller: %v", err))
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func (h *MetricsHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)

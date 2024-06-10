@@ -94,3 +94,20 @@ func (v *MetricValidator) FromBody(body io.ReadCloser) (*model.Metric, error) {
 
 	return metric, nil
 }
+
+func (v *MetricValidator) ManyFromBody(body io.ReadCloser) ([]model.Metric, error) {
+	metrics := []model.Metric{}
+
+	err := json.NewDecoder(body).Decode(&metrics)
+	if err != nil {
+		return nil, NewParsingValueError("failed to parse metric json: %s", err)
+	}
+
+	for _, m := range metrics {
+		if m.MType != model.CounterType && m.MType != model.GaugeType {
+			return nil, NewParsingValueError("failed to validate metric type: %s", err)
+		}
+	}
+
+	return metrics, nil
+}

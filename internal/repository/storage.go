@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"metrix/internal/model"
@@ -209,6 +210,43 @@ func (s *MemoryStorage) restore() error {
 	s.storage = newStorage
 
 	return nil
+}
+
+func (s *MemoryStorage) ReadMany(ctx context.Context, metricIDs []string) (*[]model.Metric, error) {
+	s.mux.RLock()
+	defer s.mux.RUnlock()
+
+	metrics := []model.Metric{}
+	for _, id := range metricIDs {
+		metric, ok := s.storage[id]
+		if !ok {
+			return nil, errors.New("failed to find metric by ID")
+		}
+		metrics = append(metrics, metric)
+	}
+
+	return &metrics, nil
+}
+
+func (s *MemoryStorage) UpsertMany(
+	ctx context.Context,
+	metrics []model.Metric,
+) (bool, error) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	for _, m := range metrics {
+		s.storage[m.ID] = m
+	}
+
+	if s.saveSync {
+		err := s.writeToFile()
+		if err != nil {
+			return false, fmt.Errorf("failed to backup storage: %w", err)
+		}
+	}
+
+	return true, nil
 }
 
 func (s *MemoryStorage) PingDB() bool {

@@ -7,6 +7,7 @@ import (
 
 type MetricsController interface {
 	Set(ctx context.Context, metricIn *model.Metric) (*model.Metric, error)
+	SetMany(ctx context.Context, metricsIn []model.Metric) (bool, error)
 	Get(ctx context.Context, metricID string) (*model.Metric, error)
 	GetIDs(ctx context.Context) (*[]string, error)
 }

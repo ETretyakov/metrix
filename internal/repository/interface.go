@@ -15,9 +15,11 @@ type FactoryExecutor interface {
 type MetricRepository interface {
 	Create(ctx context.Context, metric *model.Metric) (*model.Metric, error)
 	Read(ctx context.Context, metricID string) (*model.Metric, error)
-	Update(ctx context.Context, metric *model.Metric) (*model.Metric, error)
-	Delete(ctx context.Context, metricID string) error
 	ReadIDs(ctx context.Context) (*[]string, error)
+	ReadMany(ctx context.Context, metricIDs []string) (*[]model.Metric, error)
+	Update(ctx context.Context, metric *model.Metric) (*model.Metric, error)
+	UpsertMany(ctx context.Context, metrics []model.Metric) (bool, error)
+	Delete(ctx context.Context, metricID string) error
 	PingDB() bool
 }
 

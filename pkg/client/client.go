@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"metrix/pkg/logger"
+	"net/http"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -33,14 +34,11 @@ type Metrics struct {
 	Value *float64 `json:"value,omitempty"`
 }
 
-func SendMetric(
+func CheckBatching(
 	ctx context.Context,
 	baseURL string,
-	widgetType WidgetType,
-	name string,
-	value float64,
-) error {
-	url := fmt.Sprintf("%s/update/", baseURL)
+) (bool, error) {
+	url := fmt.Sprintf("%s/updates/", baseURL)
 	client := resty.New()
 
 	client.
@@ -49,18 +47,37 @@ func SendMetric(
 		SetRetryWaitTime(RetryWaitTime).
 		SetRetryMaxWaitTime(RetryMaxWaitTime)
 
-	metrics := Metrics{
-		ID:    name,
-		MType: string(widgetType),
+	emptyBuffer := []string{}
+	resp, err := client.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/json").
+		SetHeader("Content-Encoding", "gzip").
+		SetBody(&emptyBuffer).
+		Post(url)
+	if err != nil {
+		return false, fmt.Errorf("client.ReadAll: %w", err)
 	}
 
-	switch widgetType {
-	case CounterType:
-		val := int64(value)
-		metrics.Delta = &val
-	default:
-		metrics.Value = &value
+	if resp.StatusCode() == http.StatusNotFound {
+		return false, nil
 	}
+
+	return true, nil
+}
+
+func SendMetricBatch(
+	ctx context.Context,
+	baseURL string,
+	metrics []*Metrics,
+) error {
+	url := fmt.Sprintf("%s/updates/", baseURL)
+	client := resty.New()
+
+	client.
+		SetHeader("Accept-Encoding", "gzip").
+		SetRetryCount(RetryCount).
+		SetRetryWaitTime(RetryWaitTime).
+		SetRetryMaxWaitTime(RetryMaxWaitTime)
 
 	var buffer bytes.Buffer
 	writer := gzip.NewWriter(&buffer)
@@ -69,6 +86,12 @@ func SendMetric(
 	if err != nil {
 		return fmt.Errorf("failed to marshal metrics body: %w", err)
 	}
+
+	logger.Info(
+		ctx,
+		fmt.Sprintf("metrics to send: %s", data),
+	)
+
 	_, err = writer.Write(data)
 	if err != nil {
 		return fmt.Errorf("failed to compress data: %w", err)
@@ -100,13 +123,71 @@ func SendMetric(
 
 	logger.Info(
 		ctx,
-		fmt.Sprintf(
-			"metrics has been sent successfully: widget_type=%s name=%s value=%f",
-			widgetType,
-			name,
-			value,
-		),
+		"metrics has been sent successfully",
 	)
 
+	return nil
+}
+
+func SendMetric(
+	ctx context.Context,
+	baseURL string,
+	metrics []*Metrics,
+) error {
+	url := fmt.Sprintf("%s/update/", baseURL)
+	client := resty.New()
+
+	client.
+		SetHeader("Accept-Encoding", "gzip").
+		SetRetryCount(RetryCount).
+		SetRetryWaitTime(RetryWaitTime).
+		SetRetryMaxWaitTime(RetryMaxWaitTime)
+
+	for _, m := range metrics {
+		var buffer bytes.Buffer
+		writer := gzip.NewWriter(&buffer)
+
+		data, err := json.Marshal(&m)
+		if err != nil {
+			return fmt.Errorf("failed to marshal metrics body: %w", err)
+		}
+		_, err = writer.Write(data)
+		if err != nil {
+			return fmt.Errorf("failed to compress data: %w", err)
+		}
+
+		err = writer.Close()
+		if err != nil {
+			return fmt.Errorf("failed to close writer: %w", err)
+		}
+
+		resp, err := client.R().
+			SetContext(ctx).
+			SetHeader("Content-Type", "application/json").
+			SetHeader("Content-Encoding", "gzip").
+			SetBody(&buffer).
+			Post(url)
+
+		if err != nil {
+			return fmt.Errorf("client.ReadAll: %w", err)
+		}
+
+		if resp.IsError() {
+			return fmt.Errorf(
+				"failed to make request: status=%s body=%s",
+				resp.Status(),
+				resp.Body(),
+			)
+		}
+
+		logger.Info(
+			ctx,
+			fmt.Sprintf(
+				"metrics has been sent successfully: widget_type=%s name=%s",
+				m.MType,
+				m.ID,
+			),
+		)
+	}
 	return nil
 }
