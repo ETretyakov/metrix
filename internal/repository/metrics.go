@@ -88,6 +88,10 @@ func (r *MetricRepositoryImpl) ReadIDs(ctx context.Context) (*[]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read metrics error during querying: %w", err)
 	}
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("read metrics error during querying: %w", err)
+	}
+	defer rows.Close()
 
 	var ids []string
 	for rows.Next() {
@@ -128,6 +132,10 @@ func (r *MetricRepositoryImpl) ReadMany(
 	if err != nil {
 		return nil, fmt.Errorf("read metrics error during querying: %w", err)
 	}
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("read metrics error during querying: %w", err)
+	}
+	defer rows.Close()
 
 	newMetrics := []model.Metric{}
 	for rows.Next() {
@@ -187,38 +195,18 @@ func (r *MetricRepositoryImpl) UpsertMany(
 	}
 	defer tx.Commit()
 
+	rowsIn := []any{}
 	for _, m := range metrics {
-		metric, err := r.Read(ctx, m.ID)
-		if err != nil {
-			return false, fmt.Errorf("failed to get metric: %w", err)
-		}
+		rowsIn = append(rowsIn, m)
+	}
+	qu, _, err := goqu.Insert(metricTName).Rows(rowsIn...).ToSQL()
+	if err != nil {
+		return false, fmt.Errorf("upsert metric error during query building: %w", err)
+	}
+	qu += " ON CONFLICT ON CONSTRAINT mtr_metrics_pk DO UPDATE SET delta = excluded.delta, value = excluded.value"
 
-		qu := ""
-		if metric == nil {
-			qu, _, err = goqu.
-				Insert(metricTName).
-				Rows(m).
-				Returning("id").
-				ToSQL()
-			if err != nil {
-				return false, fmt.Errorf("create metric error during query building: %w", err)
-			}
-			if _, err := tx.ExecContext(ctx, qu); err != nil {
-				return false, fmt.Errorf("failed to create metric: %w", err)
-			}
-		} else {
-			qu, _, err = goqu.
-				Update(metricTName).
-				Set(m).
-				Where(goqu.Ex{"id": metric.ID}).
-				ToSQL()
-			if err != nil {
-				return false, fmt.Errorf("create metric error during query building: %w", err)
-			}
-			if _, err := tx.ExecContext(ctx, qu); err != nil {
-				return false, fmt.Errorf("failed to update metric: %w", err)
-			}
-		}
+	if _, err := tx.ExecContext(ctx, qu); err != nil {
+		return false, fmt.Errorf("failed to upsert metric: %w", err)
 	}
 
 	return true, nil
