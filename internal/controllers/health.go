@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"metrix/internal/repository"
 	"sync"
 )
@@ -43,5 +44,5 @@ func (h *HealthControllerImpl) LivenessState() bool {
 }
 
 func (h *HealthControllerImpl) PingDB() bool {
-	return h.repoGroup.MetricRepo.PingDB()
+	return h.repoGroup.MetricRepo.PingDB(context.Background())
 }

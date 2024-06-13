@@ -34,7 +34,7 @@ func (r *MetricRepositoryImpl) Create(
 		return nil, fmt.Errorf("create metric error during query building: %w", err)
 	}
 
-	tx, err := r.gr.BeginTxx(ctx, nil)
+	tx, err := r.gr.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -167,7 +167,7 @@ func (r *MetricRepositoryImpl) Update(
 		return nil, fmt.Errorf("create metric error during query building: %w", err)
 	}
 
-	tx, err := r.gr.BeginTxx(ctx, nil)
+	tx, err := r.gr.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -189,7 +189,7 @@ func (r *MetricRepositoryImpl) UpsertMany(
 	ctx context.Context,
 	metrics []model.Metric,
 ) (bool, error) {
-	tx, err := r.gr.BeginTxx(ctx, nil)
+	tx, err := r.gr.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -224,14 +224,14 @@ func (r *MetricRepositoryImpl) Delete(
 		return fmt.Errorf("delete metric error during query building: %w", err)
 	}
 
-	if _, err := r.gr.ExecContext(ctx, qu); err != nil {
+	if _, err := r.gr.DB.ExecContext(ctx, qu); err != nil {
 		return fmt.Errorf("delete metric error during execute query: %w", err)
 	}
 
 	return nil
 }
 
-func (r *MetricRepositoryImpl) PingDB() bool {
-	err := r.gr.DB.Ping()
+func (r *MetricRepositoryImpl) PingDB(ctx context.Context) bool {
+	err := r.gr.DB.PingDB(ctx)
 	return err == nil
 }
