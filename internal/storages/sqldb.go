@@ -32,6 +32,10 @@ type SQLDB struct {
 }
 
 func NewSQLDB(db *sqlx.DB) *SQLDB {
+	if db == nil {
+		return nil
+	}
+
 	r := &SQLDB{
 		db: db,
 	}
@@ -71,7 +75,14 @@ func (r *SQLDB) QueryxContext(
 	err := r.retry(ctx, func() error {
 		var err error
 		rows, err = r.db.QueryxContext(ctx, query, args...)
-		return err
+		if err != nil {
+			return fmt.Errorf("failed to query context: %w", err)
+		}
+		err = rows.Err()
+		if err != nil {
+			return fmt.Errorf("failed to query context error in rows: %w", err)
+		}
+		return nil
 	})
 	return rows, err
 }
