@@ -38,10 +38,17 @@ func (r *MetricRepositoryImpl) Create(
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Commit()
+	defer tx.Rollback()
 
 	if _, err := tx.ExecContext(ctx, qu); err != nil {
 		return nil, fmt.Errorf("create metric error during execute query: %w", err)
+	}
+
+	tx.Commit()
+
+	metric, err = r.Read(ctx, metric.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve metric after update: %w", err)
 	}
 
 	return metric, nil
@@ -101,10 +108,6 @@ func (r *MetricRepositoryImpl) ReadIDs(ctx context.Context) (*[]string, error) {
 			return nil, fmt.Errorf("read metrics error during scan rows: %w", err)
 		}
 		ids = append(ids, id)
-	}
-
-	if err == sql.ErrNoRows {
-		return nil, nil
 	}
 
 	return &ids, nil
@@ -171,7 +174,7 @@ func (r *MetricRepositoryImpl) Update(
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Commit()
+	defer tx.Rollback()
 
 	if _, err := tx.ExecContext(ctx, qu); err != nil {
 		return nil, fmt.Errorf("update metric error during execute query: %w", err)
@@ -181,6 +184,8 @@ func (r *MetricRepositoryImpl) Update(
 	if err != nil {
 		return nil, fmt.Errorf("refresh metric error: %w", err)
 	}
+
+	tx.Commit()
 
 	return metricOut, nil
 }
@@ -193,7 +198,7 @@ func (r *MetricRepositoryImpl) UpsertMany(
 	if err != nil {
 		return false, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Commit()
+	defer tx.Rollback()
 
 	rowsIn := []any{}
 	for _, m := range metrics {
@@ -208,6 +213,8 @@ func (r *MetricRepositoryImpl) UpsertMany(
 	if _, err := tx.ExecContext(ctx, qu); err != nil {
 		return false, fmt.Errorf("failed to upsert metric: %w", err)
 	}
+
+	tx.Commit()
 
 	return true, nil
 }
