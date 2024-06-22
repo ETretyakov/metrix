@@ -10,6 +10,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const (
+	errorMsg = "[ERROR] %s %s %s: %s\n"
+)
+
 type WidgetController struct {
 	WidgetInteractor usecases.WidgetInteractor
 	Logger           usecases.Logger
@@ -36,7 +40,7 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 	namespace := "default"
 	widgetType, err := domain.ParseWidgetType(vars["widgetType"])
 	if err != nil {
-		wc.Logger.LogError("[ERROR] %s %s %s: %s\n", r.RemoteAddr, r.Method, r.URL, err)
+		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -44,7 +48,7 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 
 	widget, err := wc.WidgetInteractor.Show(namespace, widgetType, name)
 	if err != nil {
-		wc.Logger.LogError("[ERROR] %s %s %s: %s\n", r.RemoteAddr, r.Method, r.URL, err)
+		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -52,7 +56,7 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(widget)
 	if err != nil {
-		wc.Logger.LogError("[ERROR] %s %s %s: %s\n", r.RemoteAddr, r.Method, r.URL, err)
+		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -68,7 +72,7 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 	namespace := "default"
 	widgetType, err := domain.ParseWidgetType(vars["widgetType"])
 	if err != nil {
-		wc.Logger.LogError("[ERROR] %s %s %s: %s\n", r.RemoteAddr, r.Method, r.URL, err)
+		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -77,7 +81,7 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 
 	val, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		wc.Logger.LogError("[ERROR] %s %s %s: %s\n", r.RemoteAddr, r.Method, r.URL, err)
+		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -91,7 +95,7 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 		widget, err = wc.WidgetInteractor.Update(namespace, widgetType, name, val)
 	}
 	if err != nil {
-		wc.Logger.LogError("[ERROR] %s %s %s: %s\n", r.RemoteAddr, r.Method, r.URL, err)
+		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -99,7 +103,7 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(widget)
 	if err != nil {
-		wc.Logger.LogError("[ERROR] %s %s %s: %s\n", r.RemoteAddr, r.Method, r.URL, err)
+		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

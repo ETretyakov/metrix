@@ -60,13 +60,7 @@ func (wr *WidgetRepository) Increment(
 		return
 	}
 
-	var newValue float64
-
-	if prevVal == nil {
-		newValue = value
-	} else {
-		newValue = value + *prevVal
-	}
+	newValue := value + *prevVal
 
 	val, err := wr.StorageHandler.Set(key, newValue)
 	if err != nil {
