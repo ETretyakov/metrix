@@ -22,7 +22,7 @@ func SetSignKey(key string) {
 func SignatureMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hashSum := r.Header.Get("HashSHA256")
-		if r.Method == http.MethodPost && len(hashSum) != 0 {
+		if r.Method == http.MethodPost && hashSum != "" {
 			bodyBytes, err := io.ReadAll(r.Body)
 			if err != nil {
 				logger.Warn(
