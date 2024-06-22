@@ -2,7 +2,7 @@ package infrastructure
 
 import (
 	"metrix/internal/interfaces"
-	"metrix/internal/usecases"
+	"metrix/internal/logger"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -10,10 +10,9 @@ import (
 
 func Dispatch(
 	addr string,
-	logger usecases.Logger,
 	storageHandler interfaces.StorageHandler,
 ) {
-	widgetController := interfaces.NewWidgetController(storageHandler, logger)
+	widgetController := interfaces.NewWidgetController(storageHandler)
 
 	router := mux.NewRouter()
 
@@ -32,8 +31,10 @@ func Dispatch(
 		widgetController.Keys,
 	).Methods(http.MethodGet)
 
-	logger.LogAccess("starting server at: " + addr)
+	router.Use(logger.LoggingMiddleware)
+
+	logger.Log.Infof("starting server at: %s", addr)
 	if err := http.ListenAndServe(addr, router); err != nil {
-		logger.LogError("%s", err)
+		logger.Log.Errorw(err.Error(), "address", addr)
 	}
 }
