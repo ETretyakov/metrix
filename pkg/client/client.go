@@ -106,14 +106,6 @@ func SendMetricBatch(
 		return fmt.Errorf("failed to close writer: %w", err)
 	}
 
-	logger.Warn(
-		context.TODO(),
-		fmt.Sprintf(
-			"sent body=%s",
-			buffer.Bytes(),
-		),
-	)
-
 	h := hmac.New(sha256.New, []byte(signKey))
 	h.Write(buffer.Bytes())
 	signature := h.Sum(nil)

@@ -77,7 +77,7 @@ if [ "$increment" = "14" ]; then
                   -agent-binary-path=cmd/agent/agent \
                   -binary-path=cmd/server/server \
                   -database-dsn='postgresql://postgres:thepass123@127.0.0.1:5442/postgres' \
-                  -key="invalidkey" \
+                  -key="/tmp/sEH1Sqw" \
                   -server-port=28080 \
                   -source-path=.
 fi

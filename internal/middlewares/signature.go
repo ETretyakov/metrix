@@ -13,7 +13,7 @@ import (
 	"net/http"
 )
 
-var signKey string
+var signKey string = ""
 
 func SetSignKey(key string) {
 	signKey = key
@@ -22,7 +22,7 @@ func SetSignKey(key string) {
 func SignatureMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hashSum := r.Header.Get("HashSHA256")
-		if r.Method == http.MethodPost && hashSum != "" {
+		if r.Method == http.MethodPost && hashSum != "" && signKey != "" {
 			bodyBytes, err := io.ReadAll(r.Body)
 			if err != nil {
 				logger.Warn(
@@ -42,20 +42,6 @@ func SignatureMiddleware(next http.Handler) http.Handler {
 			w.Header().Add("HashSHA256", signature)
 
 			if signature != hashSum {
-				logger.Warn(
-					context.TODO(),
-					fmt.Sprintf(
-						"signKey=%s",
-						signKey,
-					),
-				)
-				logger.Warn(
-					context.TODO(),
-					fmt.Sprintf(
-						"received body=%s",
-						bodyBytes,
-					),
-				)
 				logger.Warn(
 					context.TODO(),
 					fmt.Sprintf(
