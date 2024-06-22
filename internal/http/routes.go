@@ -33,6 +33,7 @@ func (s *Server) setupRoutes() *mux.Router {
 		Headers("Content-Type", "application/json")
 
 	mux.Use(middlewares.LoggingMiddleware)
+	mux.Use(middlewares.SignatureMiddleware)
 	mux.Use(middlewares.GzipMiddleware)
 
 	return mux

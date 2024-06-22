@@ -5,6 +5,7 @@ import (
 	"log"
 	"metrix/internal/app"
 	"metrix/internal/config"
+	"metrix/internal/middlewares"
 	"metrix/pkg/logger"
 	"os"
 	"os/signal"
@@ -25,6 +26,8 @@ func main() {
 	}
 
 	logger.InitDefault(cfg.LogLevel)
+
+	middlewares.SetSignKey(cfg.SignKey)
 
 	if err := app.Run(ctx, cfg); err != nil {
 		log.Fatalf("error running http server: %v", err)

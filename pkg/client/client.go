@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"metrix/pkg/logger"
@@ -69,6 +72,7 @@ func SendMetricBatch(
 	ctx context.Context,
 	baseURL string,
 	metrics []*Metrics,
+	signKey string,
 ) error {
 	url := fmt.Sprintf("%s/updates/", baseURL)
 	client := resty.New()
@@ -102,10 +106,15 @@ func SendMetricBatch(
 		return fmt.Errorf("failed to close writer: %w", err)
 	}
 
+	h := hmac.New(sha256.New, []byte(signKey))
+	h.Write(buffer.Bytes())
+	signature := h.Sum(nil)
+
 	resp, err := client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Content-Encoding", "gzip").
+		SetHeader("HashSHA256", hex.EncodeToString(signature)).
 		SetBody(&buffer).
 		Post(url)
 
