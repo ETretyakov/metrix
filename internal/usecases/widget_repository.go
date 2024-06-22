@@ -22,4 +22,8 @@ type WidgetRepository interface {
 		name string,
 		value float64,
 	) (domain.Widget, error)
+
+	Keys(
+		namespace string,
+	) ([]string, error)
 }

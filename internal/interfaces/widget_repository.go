@@ -1,7 +1,10 @@
 package interfaces
 
 import (
+	"errors"
+	"fmt"
 	"metrix/internal/domain"
+	"metrix/internal/exceptions"
 )
 
 type WidgetRepository struct {
@@ -22,7 +25,7 @@ func (wr *WidgetRepository) Show(
 	widget.Namespace = namespace
 	widget.Name = name
 	widget.Type = widgetType
-	widget.Value = *val
+	widget.Value = val
 
 	return
 }
@@ -42,7 +45,7 @@ func (wr *WidgetRepository) Update(
 	widget.Namespace = namespace
 	widget.Name = name
 	widget.Type = widgetType
-	widget.Value = *val
+	widget.Value = val
 
 	return
 }
@@ -57,10 +60,15 @@ func (wr *WidgetRepository) Increment(
 
 	prevVal, err := wr.StorageHandler.Get(key)
 	if err != nil {
-		return
+		var recordNotFound exceptions.RecordNotFoundError
+		if errors.As(err, &recordNotFound) {
+			prevVal = 0
+		} else {
+			return
+		}
 	}
 
-	newValue := value + *prevVal
+	newValue := value + prevVal
 
 	val, err := wr.StorageHandler.Set(key, newValue)
 	if err != nil {
@@ -70,7 +78,18 @@ func (wr *WidgetRepository) Increment(
 	widget.Namespace = namespace
 	widget.Name = name
 	widget.Type = widgetType
-	widget.Value = *val
+	widget.Value = val
+
+	return
+}
+
+func (wr *WidgetRepository) Keys(
+	namespace string,
+) (keys []string, err error) {
+	keys, err = wr.StorageHandler.Keys(namespace)
+	if err != nil {
+		err = fmt.Errorf("failed to retrieve storage keys: %w", err)
+	}
 
 	return
 }

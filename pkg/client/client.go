@@ -9,6 +9,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	RetryCount       int           = 3
+	RetryWaitTime    time.Duration = time.Second * 2
+	RetryMaxWaitTime time.Duration = time.Second * 8
+)
+
 type WidgetType string
 
 const (
@@ -29,9 +35,9 @@ func SendMetric(
 	client := resty.New()
 
 	client.
-		SetRetryCount(3).
-		SetRetryWaitTime(time.Second * 2).
-		SetRetryMaxWaitTime(time.Second * 8)
+		SetRetryCount(RetryCount).
+		SetRetryWaitTime(RetryWaitTime).
+		SetRetryMaxWaitTime(RetryMaxWaitTime)
 
 	resp, err := client.R().
 		SetContext(ctx).

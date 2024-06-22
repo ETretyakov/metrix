@@ -2,10 +2,13 @@ package interfaces
 
 import (
 	"encoding/json"
+	"errors"
 	"metrix/internal/domain"
+	"metrix/internal/exceptions"
 	"metrix/internal/usecases"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -49,17 +52,25 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 	widget, err := wc.WidgetInteractor.Show(namespace, widgetType, name)
 	if err != nil {
 		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+		var recordNotFound exceptions.RecordNotFoundError
+		if errors.As(err, &recordNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(widget)
-	if err != nil {
-		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	w.Write([]byte(strconv.FormatFloat(widget.Value, 'f', -1, 64)))
+
+	// w.WriteHeader(http.StatusOK)
+	// err = json.NewEncoder(w).Encode(widget)
+	// if err != nil {
+	// 	wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
 }
 
 func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +112,47 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(widget)
+	w.Write([]byte(strconv.FormatFloat(widget.Value, 'f', -1, 64)))
+
+	// err = json.NewEncoder(w).Encode(widget)
+	// if err != nil {
+	// 	wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	return
+	// }
+}
+
+func (wc *WidgetController) Keys(w http.ResponseWriter, r *http.Request) {
+	wc.Logger.LogAccess("%s %s %s\n", r.RemoteAddr, r.Method, r.URL)
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	namespace := "default"
+
+	keys, err := wc.WidgetInteractor.Keys(namespace)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	count := 0
+	items := make([]domain.WidgetListItem, 0)
+	for i, k := range keys {
+		splitKey := strings.Split(k, ":")
+		items = append(
+			items,
+			domain.WidgetListItem{
+				Namespace: splitKey[0],
+				Type:      domain.WidgetType(splitKey[1]),
+				Name:      splitKey[2],
+			},
+		)
+		count = i + 1
+	}
+
+	widgetList := domain.WidgetList{Count: count, Items: items}
+
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(widgetList)
 	if err != nil {
 		wc.Logger.LogError(errorMsg, r.RemoteAddr, r.Method, r.URL, err)
 		w.WriteHeader(http.StatusInternalServerError)

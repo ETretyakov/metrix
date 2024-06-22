@@ -28,3 +28,14 @@ type Widget struct {
 	Type      WidgetType `json:"type"`
 	Value     float64    `json:"value"`
 }
+
+type WidgetListItem struct {
+	Namespace string     `json:"namespace"`
+	Name      string     `json:"name"`
+	Type      WidgetType `json:"type"`
+}
+
+type WidgetList struct {
+	Count int              `json:"count"`
+	Items []WidgetListItem `json:"items"`
+}

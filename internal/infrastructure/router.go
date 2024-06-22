@@ -19,11 +19,18 @@ func Dispatch(logger usecases.Logger, storageHandler interfaces.StorageHandler) 
 	).Methods(http.MethodPost)
 
 	router.HandleFunc(
-		"/show/{widgetType}/{name}",
+		"/value/{widgetType}/{name}",
 		widgetController.Show,
 	).Methods(http.MethodGet)
 
-	if err := http.ListenAndServe(":8080", router); err != nil {
+	router.HandleFunc(
+		"/",
+		widgetController.Keys,
+	).Methods(http.MethodGet)
+
+	addr := ":8080"
+	logger.LogAccess("starting server at: " + addr)
+	if err := http.ListenAndServe(addr, router); err != nil {
 		logger.LogError("%s", err)
 	}
 }
