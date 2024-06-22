@@ -39,7 +39,16 @@ func SignatureMiddleware(next http.Handler) http.Handler {
 			h.Write(bodyBytes)
 			signature := hex.EncodeToString(h.Sum(nil))
 
+			w.Header().Add("HashSHA256", signature)
+
 			if signature != hashSum {
+				logger.Warn(
+					context.TODO(),
+					fmt.Sprintf(
+						"signKey=%s",
+						signKey,
+					),
+				)
 				logger.Warn(
 					context.TODO(),
 					fmt.Sprintf(
