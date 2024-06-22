@@ -1,29 +1,11 @@
-package logger
+package middlewares
 
 import (
+	"context"
+	"metrix/pkg/logger"
 	"net/http"
 	"time"
-
-	"go.uber.org/zap"
 )
-
-var Log *zap.SugaredLogger = zap.NewNop().Sugar()
-
-func Initialize(level string) error {
-	lvl, err := zap.ParseAtomicLevel(level)
-	if err != nil {
-		return err
-	}
-	cfg := zap.NewProductionConfig()
-	cfg.Level = lvl
-	zl, err := cfg.Build()
-	if err != nil {
-		return err
-	}
-
-	Log = zl.Sugar()
-	return nil
-}
 
 type (
 	responseData struct {
@@ -66,7 +48,8 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 		duration := time.Since(start)
 
-		Log.Infow(
+		logger.Info(
+			context.TODO(),
 			"got incoming request",
 			"url", r.URL,
 			"method", r.Method,

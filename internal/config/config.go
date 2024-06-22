@@ -2,40 +2,47 @@ package config
 
 import (
 	"fmt"
-	"os"
+	"time"
 
-	"github.com/caarlos0/env"
-	"github.com/spf13/pflag"
+	"github.com/caarlos0/env/v6"
 )
 
-type Config struct { //nolint:govet // I want it be pretty
-	Address  string `env:"ADDRESS" mapstructure:"ADDRESS" envDefault:"localhost:8080"` //nolint:lll // I want it be pretty
-	LogLevel string `env:"LogLevel"   mapstructure:"LogLevel"   envDefault:"info"`
+type AppMode string
+
+const (
+	ProdAppMode  AppMode = "prod"
+	StageAppMode AppMode = "stage"
+	DevAppMode   AppMode = "dev"
+	LocalAppMode AppMode = "local"
+)
+
+type Postgres struct {
+	DSN             string        `env:"DSN"              envDefault:""`
+	MaxOpenConn     int           `env:"MAX_OPEN_CONN"    envDefault:"10"`
+	IdleConn        int           `env:"MAX_IDLE_CONN"    envDefault:"10"`
+	PingInterval    time.Duration `env:"DURATION"         envDefault:"5s"`
+	MigrationFolder string        `env:"MIGRATION_FODLER" envDefault:"./migrations"`
 }
 
-func LoadConfig() (*Config, error) {
-	config := &Config{}
-	if err := env.Parse(config); err != nil {
-		return nil, fmt.Errorf("env.Parse: %w", err)
+type Config struct {
+	AppMode         AppMode  `env:"APP_MODE"          envDefault:"local"           flag:"mode"              flagShort:"m" flagDescription:"application mode"`
+	HTTPAddress     string   `env:"ADDRESS"           envDefault:"localhost:8080"  flag:"address"           flagShort:"a" flagDescription:"http adress"`
+	StoreInterval   int64    `env:"STORE_INTERVAL"    envDefault:"300"             flag:"store_interval"    flagShort:"i" flagDescription:"interval for storage backup"`
+	FileStoragePath string   `env:"FILE_STORAGE_PATH" envDefault:""                flag:"file_storage_path" flagShort:"f" flagDescription:"filepath storage backup"`
+	Restore         bool     `env:"RESTORE"           envDefault:"false"           flag:"restore"           flagShort:"r" flagDescription:"boolean to restore from backup"`
+	LogLevel        string   `env:"LOG_LEVEL"         envDefault:"info"            flag:"log_level"         flagShort:"l" flagDescription:"level for logging"`
+	LogFile         string   `env:"LOG_FILE"          envDefault:"logs/logs.jsonl" flag:"log_file"          flagShort:"w" flagDescription:"filepath for logs"`
+	Postgres        Postgres `envPrefix:"DATABASE_"                                flag:"pg_dsn"            flagShort:"d" flagDescription:"database dsn"`
+}
+
+func NewConfig() (*Config, error) {
+	cfg := &Config{}
+
+	if err := env.Parse(cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse server envs: %w", err)
 	}
 
-	var addr string
-	pflag.StringVarP(&addr, "address", "a", "", "the address for the api to listen on. Host and port separated by ':'")
+	ParseFlags(cfg)
 
-	var logLevel string
-	pflag.StringVarP(&logLevel, "loglevel", "r", "", "the level of logger")
-
-	pflag.Parse()
-
-	envAddress := os.Getenv("ADDRESS")
-	if len(envAddress) == 0 && addr != "" {
-		config.Address = addr
-	}
-
-	envLogLevel := os.Getenv("LogLevel")
-	if len(envLogLevel) == 0 && envLogLevel != "" {
-		config.LogLevel = envLogLevel
-	}
-
-	return config, nil
+	return cfg, nil
 }

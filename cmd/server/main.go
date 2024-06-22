@@ -1,32 +1,32 @@
 package main
 
 import (
+	"context"
 	"log"
+	"metrix/internal/app"
 	"metrix/internal/config"
-	"metrix/internal/infrastructure"
-	"metrix/internal/logger"
+	"metrix/pkg/logger"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
-	config, err := config.LoadConfig()
-	if err != nil {
-		err := logger.Initialize("debug")
-		if err != nil {
-			logger.Log.Fatalf("failed to load config: %w", err)
-		} else {
-			log.Fatalf("failed to load config: %s", err)
-		}
-	}
-
-	logger.Initialize(config.LogLevel)
-
-	storageHandler, err := infrastructure.NewStorageHandler()
-	if err != nil {
-		logger.Log.Fatalf("failed to connect to the storage: %w", err)
-	}
-
-	infrastructure.Dispatch(
-		config.Address,
-		storageHandler,
+	ctx, cancel := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
 	)
+	defer cancel()
+
+	cfg, err := config.NewConfig()
+	if err != nil {
+		logger.Error(ctx, "failed to read config", err)
+	}
+
+	logger.InitDefault(cfg.LogLevel)
+
+	if err := app.Run(ctx, cfg); err != nil {
+		log.Fatalf("error running http server: %v", err)
+	}
 }
