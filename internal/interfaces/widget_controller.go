@@ -296,7 +296,7 @@ func (wc *WidgetController) UpdateSingleEndpoint(
 }
 
 func (wc *WidgetController) Keys(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Type", "text/html")
 	namespace := "default"
 
 	keys, err := wc.WidgetInteractor.Keys(namespace)

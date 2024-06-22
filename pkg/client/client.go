@@ -1,7 +1,10 @@
 package client
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -41,6 +44,7 @@ func SendMetric(
 	client := resty.New()
 
 	client.
+		SetHeader("Accept-Encoding", "gzip").
 		SetRetryCount(RetryCount).
 		SetRetryWaitTime(RetryWaitTime).
 		SetRetryMaxWaitTime(RetryMaxWaitTime)
@@ -58,10 +62,28 @@ func SendMetric(
 		metrics.Value = &value
 	}
 
+	var buffer bytes.Buffer
+	writer := gzip.NewWriter(&buffer)
+
+	data, err := json.Marshal(&metrics)
+	if err != nil {
+		return fmt.Errorf("failed to marshal metrics body: %w", err)
+	}
+	_, err = writer.Write(data)
+	if err != nil {
+		return fmt.Errorf("failed to compress data: %w", err)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return fmt.Errorf("failed to close writer: %w", err)
+	}
+
 	resp, err := client.R().
 		SetContext(ctx).
 		SetHeader("Content-Type", "application/json").
-		SetBody(metrics).
+		SetHeader("Content-Encoding", "gzip").
+		SetBody(&buffer).
 		Post(url)
 
 	if err != nil {
