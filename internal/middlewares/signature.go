@@ -6,6 +6,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"metrix/pkg/logger"
 
@@ -36,9 +37,24 @@ func SignatureMiddleware(next http.Handler) http.Handler {
 
 			h := hmac.New(sha256.New, []byte(signKey))
 			h.Write(bodyBytes)
-			signature := h.Sum(nil)
+			signature := hex.EncodeToString(h.Sum(nil))
 
-			if hex.EncodeToString(signature) != hashSum {
+			if signature != hashSum {
+				logger.Warn(
+					context.TODO(),
+					fmt.Sprintf(
+						"received body=%s",
+						bodyBytes,
+					),
+				)
+				logger.Warn(
+					context.TODO(),
+					fmt.Sprintf(
+						"wrong signature calc=%s got=%s",
+						signature,
+						hashSum,
+					),
+				)
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			}

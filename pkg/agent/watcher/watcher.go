@@ -162,7 +162,7 @@ func (w *Watcher) Report(
 					)
 				}
 			} else {
-				err = client.SendMetric(ctx, baseURL, metrics)
+				err = client.SendMetric(ctx, baseURL, metrics, signKey)
 				if err != nil {
 					logger.Error(
 						ctx,

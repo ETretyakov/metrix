@@ -15,7 +15,7 @@ type Config struct {
 	LogLevel       string   `env:"LOG_LEVEL"       envDefault:"info"           flag:"log_level"       flagShort:"l" flagDescription:"level for logging"`
 	Metrics        []string `env:"AGT_METRICS"     envDefault:"*"`
 	UseBatching    bool     `env:"USE_BATCHING"    envDefault:"true"`
-	SignKey        string   `env:"SIGN_KEY"                                    flag:"sign_key"        flagShort:"k" flagDescription:"a key using for signing requests body"`
+	SignKey        string   `env:"KEY"                                         flag:"sign_key"        flagShort:"k" flagDescription:"a key using for signing requests body"`
 }
 
 func NewConfig() (*Config, error) {
