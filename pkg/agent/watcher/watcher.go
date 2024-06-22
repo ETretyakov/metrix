@@ -117,7 +117,7 @@ func (w *Watcher) Report(ctx context.Context, baseURL string, interval time.Dura
 					Msg(fmt.Sprintf("failed to report PollCount metric: %s", err))
 			}
 
-			err = client.SendMetric(ctx, baseURL, client.CounterType, "RandomValue", w.RandomValue)
+			err = client.SendMetric(ctx, baseURL, client.GaugeType, "RandomValue", w.RandomValue)
 			if err != nil {
 				log.Error().Err(err).Str(stageLogKey, stageLogReportVal).
 					Msg(fmt.Sprintf("failed to report RandomValue metric: %s", err))

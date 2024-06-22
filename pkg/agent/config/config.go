@@ -63,6 +63,8 @@ func LoadConfig() (*Config, error) {
 			"LastGC",
 			"Lookups",
 			"MCacheInuse",
+			"MCacheSys",
+			"MSpanInuse",
 			"MSpanSys",
 			"Mallocs",
 			"NextGC",

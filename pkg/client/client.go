@@ -23,6 +23,13 @@ const (
 	UnknownType WidgetType = "unknown"
 )
 
+type Metrics struct {
+	ID    string   `json:"id"`
+	MType string   `json:"type"`
+	Delta *int64   `json:"delta,omitempty"`
+	Value *float64 `json:"value,omitempty"`
+}
+
 func SendMetric(
 	ctx context.Context,
 	baseURL string,
@@ -30,8 +37,7 @@ func SendMetric(
 	name string,
 	value float64,
 ) error {
-	url := fmt.Sprintf("%s/update/%s/%s/%f", baseURL, widgetType, name, value)
-
+	url := fmt.Sprintf("%s/update/", baseURL)
 	client := resty.New()
 
 	client.
@@ -39,9 +45,23 @@ func SendMetric(
 		SetRetryWaitTime(RetryWaitTime).
 		SetRetryMaxWaitTime(RetryMaxWaitTime)
 
+	metrics := Metrics{
+		ID:    name,
+		MType: string(widgetType),
+	}
+
+	switch widgetType {
+	case CounterType:
+		val := int64(value)
+		metrics.Delta = &val
+	default:
+		metrics.Value = &value
+	}
+
 	resp, err := client.R().
 		SetContext(ctx).
-		SetHeader("Content-Type", "text/plain; charset=utf-8").
+		SetHeader("Content-Type", "application/json").
+		SetBody(metrics).
 		Post(url)
 
 	if err != nil {

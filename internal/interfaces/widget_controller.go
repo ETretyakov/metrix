@@ -68,6 +68,82 @@ func (wc *WidgetController) Show(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(strconv.FormatFloat(widget.Value, 'f', -1, 64)))
 }
 
+func (wc *WidgetController) ShowSingleEndpoint(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var schemeIn domain.Metrics
+
+	err := json.NewDecoder(r.Body).Decode(&schemeIn)
+	if err != nil {
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	namespace := "default"
+	widgetType, err := domain.ParseWidgetType(schemeIn.MType)
+	if err != nil {
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	widget, err := wc.WidgetInteractor.Show(namespace, widgetType, schemeIn.ID)
+	if err != nil {
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
+		var recordNotFound exceptions.RecordNotFoundError
+		if errors.As(err, &recordNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	schemeOut := domain.Metrics{
+		ID:    widget.Name,
+		MType: string(widget.Type),
+	}
+
+	switch widgetType {
+	case domain.CounterWidget:
+		val := int64(widget.Value)
+		schemeOut.Delta = &val
+	default:
+		schemeOut.Value = &widget.Value
+	}
+
+	err = json.NewEncoder(w).Encode(schemeOut)
+	if err != nil {
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 
@@ -121,6 +197,102 @@ func (wc *WidgetController) Update(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(strconv.FormatFloat(widget.Value, 'f', -1, 64)))
+}
+
+func (wc *WidgetController) UpdateSingleEndpoint(
+	w http.ResponseWriter,
+	r *http.Request,
+) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var schemeIn domain.Metrics
+
+	err := json.NewDecoder(r.Body).Decode(&schemeIn)
+	if err != nil {
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	namespace := "default"
+	widgetType, err := domain.ParseWidgetType(schemeIn.MType)
+	if err != nil {
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var widget domain.Widget
+
+	switch widgetType {
+	case domain.CounterWidget:
+		if schemeIn.Delta == nil {
+			err = errors.New("empty field for delta")
+		} else {
+			widget, err = wc.WidgetInteractor.Increment(
+				namespace,
+				widgetType,
+				schemeIn.ID,
+				float64(*schemeIn.Delta),
+			)
+		}
+	default:
+		if schemeIn.Value == nil {
+			err = errors.New("empty field for value")
+		} else {
+			widget, err = wc.WidgetInteractor.Update(
+				namespace,
+				widgetType,
+				schemeIn.ID,
+				*schemeIn.Value,
+			)
+		}
+	}
+	if err != nil {
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	schemeOut := domain.Metrics{
+		ID:    widget.Name,
+		MType: string(widget.Type),
+	}
+
+	switch widgetType {
+	case domain.CounterWidget:
+		val := int64(widget.Value)
+		schemeOut.Delta = &val
+	default:
+		schemeOut.Value = &widget.Value
+	}
+
+	err = json.NewEncoder(w).Encode(schemeOut)
+	if err != nil {
+		logger.Log.Errorw(
+			err.Error(),
+			"address", r.RemoteAddr,
+			"method", r.Method,
+			"url", r.URL,
+		)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (wc *WidgetController) Keys(w http.ResponseWriter, r *http.Request) {

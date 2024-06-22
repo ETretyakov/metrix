@@ -17,6 +17,20 @@ func Dispatch(
 	router := mux.NewRouter()
 
 	router.HandleFunc(
+		"/update/",
+		widgetController.UpdateSingleEndpoint,
+	).
+		Methods(http.MethodPost).
+		Headers("Content-Type", "application/json")
+
+	router.HandleFunc(
+		"/value/",
+		widgetController.ShowSingleEndpoint,
+	).
+		Methods(http.MethodPost).
+		Headers("Content-Type", "application/json")
+
+	router.HandleFunc(
 		"/update/{widgetType}/{name}/{value}",
 		widgetController.Update,
 	).Methods(http.MethodPost)
