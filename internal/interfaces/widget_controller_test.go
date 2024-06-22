@@ -72,9 +72,8 @@ func TestWidgetController_Show(t *testing.T) {
 				},
 			},
 			want: want{
-				code:     200,
-				response: `0`,
-				// response:    `{"namespace":"default","name":"MyGauge","type":"gauge","value":0}`,
+				code:        200,
+				response:    `0`,
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
@@ -145,10 +144,6 @@ func TestWidgetController_Show(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.want.response, string(resBody))
-
-			// if len(tt.want.response) > 0 {
-			// assert.JSONEq(t, tt.want.response, string(resBody))
-			// }
 		})
 	}
 }
@@ -213,9 +208,8 @@ func TestWidgetController_Update(t *testing.T) {
 				},
 			},
 			want: want{
-				code:     200,
-				response: `100`,
-				// response:    `{"namespace":"default","name":"MyGauge","type":"gauge","value":100}`,
+				code:        200,
+				response:    `100`,
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
@@ -239,9 +233,8 @@ func TestWidgetController_Update(t *testing.T) {
 				},
 			},
 			want: want{
-				code:     200,
-				response: `100`,
-				// response:    `{"namespace":"default","name":"MyCounter","type":"counter","value":100}`,
+				code:        200,
+				response:    `100`,
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
@@ -265,9 +258,8 @@ func TestWidgetController_Update(t *testing.T) {
 				},
 			},
 			want: want{
-				code:     200,
-				response: `200`,
-				// response:    `{"namespace":"default","name":"MyCounter","type":"counter","value":200}`,
+				code:        200,
+				response:    `200`,
 				contentType: "text/plain; charset=utf-8",
 			},
 		},
@@ -291,8 +283,7 @@ func TestWidgetController_Update(t *testing.T) {
 				},
 			},
 			want: want{
-				code: 200,
-				// response:    `{"namespace":"default","name":"MyCounter1","type":"counter","value":100}`,
+				code:        200,
 				response:    `100`,
 				contentType: "text/plain; charset=utf-8",
 			},
@@ -316,10 +307,6 @@ func TestWidgetController_Update(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.want.response, string(resBody))
-
-			// if len(tt.want.response) > 0 {
-			// 	assert.JSONEq(t, tt.want.response, string(resBody))
-			// }
 		})
 	}
 }
