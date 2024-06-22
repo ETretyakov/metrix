@@ -26,7 +26,13 @@ func init() {
 func InitDefault(level string) {
 	globalOutput = os.Stderr
 
-	bootstrapLogger = zerolog.New(globalOutput)
+	runLogFile, _ := os.OpenFile(
+		"logs/stdout.log",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY,
+		0664,
+	)
+	multi := zerolog.MultiLevelWriter(globalOutput, runLogFile)
+	bootstrapLogger = zerolog.New(multi)
 
 	applyOptions()
 

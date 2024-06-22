@@ -52,5 +52,6 @@ func main() {
 		"http://"+cfg.Address,
 		time.Second*time.Duration(cfg.ReportInterval),
 		useBatching,
+		cfg.SignKey,
 	)
 }
