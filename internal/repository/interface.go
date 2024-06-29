@@ -4,8 +4,7 @@ import (
 	"context"
 
 	"metrix/internal/model"
-
-	"github.com/jmoiron/sqlx"
+	"metrix/internal/storages"
 )
 
 type FactoryExecutor interface {
@@ -20,18 +19,18 @@ type MetricRepository interface {
 	Update(ctx context.Context, metric *model.Metric) (*model.Metric, error)
 	UpsertMany(ctx context.Context, metrics []model.Metric) (bool, error)
 	Delete(ctx context.Context, metricID string) error
-	PingDB() bool
+	PingDB(ctx context.Context) bool
 }
 
 type Group struct {
-	*sqlx.DB
+	DB *storages.SQLDB
 
 	MetricRepo MetricRepository
 }
 
 func NewGroup(
 	ctx context.Context,
-	db *sqlx.DB,
+	db *storages.SQLDB,
 	filePath string,
 	storeInterval int64,
 	restore bool,
@@ -42,7 +41,7 @@ func NewGroup(
 		group.DB = db
 		group.MetricRepo = NewMetricRepository(group)
 	} else {
-		group.MetricRepo = NewInMemmoryStorage(ctx, filePath, storeInterval, restore)
+		group.MetricRepo = storages.NewInMemmoryStorage(ctx, filePath, storeInterval, restore)
 	}
 
 	return group

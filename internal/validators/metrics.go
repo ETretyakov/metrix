@@ -22,7 +22,7 @@ func NewMetricValidator() *MetricValidator {
 func (v *MetricValidator) FromVars(vars map[string]string) (*model.Metric, error) {
 	metric := &model.Metric{}
 
-	// Retrieveing variables
+	// Retrieving variables
 	metricID, ok := vars["id"]
 	if !ok {
 		return nil, NewParsingValueError("failed to retrieve metricID path param")
@@ -53,6 +53,7 @@ func (v *MetricValidator) FromVars(vars map[string]string) (*model.Metric, error
 		}
 
 		metric.Delta = &delta
+		metric.Value = nil
 	}
 
 	if mtype == string(model.GaugeType) {
@@ -69,6 +70,7 @@ func (v *MetricValidator) FromVars(vars map[string]string) (*model.Metric, error
 		}
 
 		metric.Value = &value
+		metric.Delta = nil
 	}
 
 	// Validate structure
@@ -92,11 +94,19 @@ func (v *MetricValidator) FromBody(body io.ReadCloser) (*model.Metric, error) {
 		return nil, NewParsingValueError("failed to validate metric type: %s", err)
 	}
 
+	if metric.MType == model.CounterType {
+		metric.Value = nil
+	}
+
+	if metric.MType == model.GaugeType {
+		metric.Delta = nil
+	}
+
 	return metric, nil
 }
 
-func (v *MetricValidator) ManyFromBody(body io.ReadCloser) ([]model.Metric, error) {
-	metrics := []model.Metric{}
+func (v *MetricValidator) ManyFromBody(body io.ReadCloser) ([]*model.Metric, error) {
+	metrics := []*model.Metric{}
 
 	err := json.NewDecoder(body).Decode(&metrics)
 	if err != nil {
@@ -106,6 +116,14 @@ func (v *MetricValidator) ManyFromBody(body io.ReadCloser) ([]model.Metric, erro
 	for _, m := range metrics {
 		if m.MType != model.CounterType && m.MType != model.GaugeType {
 			return nil, NewParsingValueError("failed to validate metric type: %s", err)
+		}
+
+		if m.MType == model.CounterType {
+			m.Value = nil
+		}
+
+		if m.MType == model.GaugeType {
+			m.Delta = nil
 		}
 	}
 

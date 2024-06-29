@@ -21,14 +21,25 @@ type Metric struct {
 
 func (m *Metric) SetValue(delta *int64, value *float64) {
 	if m.MType == GaugeType {
+		m.Delta = nil
 		m.Value = value
 		return
 	}
 
 	if m.MType == CounterType {
-		newDelta := *m.Delta + *delta
-		m.Delta = &newDelta
-		return
+		m.Value = nil
+
+		if m.Delta != nil && delta != nil {
+			newDelta := *m.Delta + *delta
+			m.Delta = &newDelta
+			return
+		}
+
+		if delta != nil {
+			m.Delta = delta
+			return
+		}
+
 	}
 }
 

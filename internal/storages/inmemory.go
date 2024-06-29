@@ -1,4 +1,4 @@
-package repository
+package storages
 
 import (
 	"context"
@@ -247,6 +247,6 @@ func (s *MemoryStorage) UpsertMany(
 	return true, nil
 }
 
-func (s *MemoryStorage) PingDB() bool {
+func (s *MemoryStorage) PingDB(ctx context.Context) bool {
 	return true
 }
