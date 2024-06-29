@@ -71,3 +71,12 @@ if [ "$increment" = "9" ]; then
                   -server-port=8888 \
                   -source-path=.
 fi
+
+if [ "$increment" = "11" ]; then
+    ./metricstest -test.v -test.run=^TestIteration11$ \
+                  -agent-binary-path=cmd/agent/agent \
+                  -binary-path=cmd/server/server \
+                  -database-dsn='postgresql://postgres:thepass123@127.0.0.1:5442/postgres' \
+                  -server-port=8888 \
+                  -source-path=.
+fi

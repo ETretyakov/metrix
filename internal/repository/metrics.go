@@ -34,7 +34,7 @@ func (r *MetricRepositoryImpl) Create(
 		return nil, fmt.Errorf("create metric error during query building: %w", err)
 	}
 
-	err = r.gr.DB.QueryRowxContext(ctx, qu).StructScan(&metric)
+	err = r.gr.DB.QueryRowxContext(ctx, qu).StructScan(metric)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run insert: %w", err)
 	}
