@@ -66,7 +66,6 @@ func InitDB(ctx context.Context, cfg *config.Postgres) (*sqlx.DB, error) {
 			case <-ctx.Done():
 				return
 			}
-
 		}
 	}()
 

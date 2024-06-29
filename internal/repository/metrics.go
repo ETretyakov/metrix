@@ -40,25 +40,6 @@ func (r *MetricRepositoryImpl) Create(
 	}
 
 	return metric, nil
-
-	// tx, err := r.gr.DB.BeginTxx(ctx, nil)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to begin transaction: %w", err)
-	// }
-	// defer tx.Rollback()
-
-	// if _, err := tx.ExecContext(ctx, qu); err != nil {
-	// 	return nil, fmt.Errorf("create metric error during execute query: %w", err)
-	// }
-
-	// tx.Commit()
-
-	// metric, err = r.Read(ctx, metric.ID)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to retrieve metric after update: %w", err)
-	// }
-
-	// return metric, nil
 }
 
 func (r *MetricRepositoryImpl) Read(
