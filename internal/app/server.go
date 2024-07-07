@@ -13,6 +13,7 @@ import (
 	"metrix/internal/handlers"
 	"metrix/internal/http"
 	"metrix/internal/repository"
+	"metrix/internal/storages"
 	"metrix/pkg/logger"
 
 	"github.com/jmoiron/sqlx"
@@ -29,9 +30,11 @@ func Run(ctx context.Context, cfg *config.Config) (err error) {
 		}
 	}
 
+	retriableDB := storages.NewSQLDB(db)
+
 	repoGroup := repository.NewGroup(
 		ctx,
-		db,
+		retriableDB,
 		cfg.FileStoragePath,
 		cfg.StoreInterval,
 		cfg.Restore,
