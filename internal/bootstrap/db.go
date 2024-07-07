@@ -56,10 +56,15 @@ func InitDB(ctx context.Context, cfg *config.Postgres) (*sqlx.DB, error) {
 	db.SetMaxIdleConns(cfg.IdleConn)
 
 	go func() {
-		t := time.NewTicker(cfg.PingInterval)
-		for range t.C {
-			if err := db.Ping(); err != nil {
-				logger.Error(ctx, "error ping db", err)
+		ticker := time.NewTicker(cfg.PingInterval)
+		for {
+			select {
+			case <-ticker.C:
+				if err := db.Ping(); err != nil {
+					logger.Error(ctx, "error ping db", err)
+				}
+			case <-ctx.Done():
+				return
 			}
 		}
 	}()

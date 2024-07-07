@@ -28,27 +28,15 @@ func (r *MetricRepositoryImpl) Create(
 	qu, _, err := goqu.
 		Insert(metricTName).
 		Rows(metric).
-		Returning("id").
+		Returning("id", "mtype", "delta", "value").
 		ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("create metric error during query building: %w", err)
 	}
 
-	tx, err := r.gr.DB.BeginTxx(ctx, nil)
+	err = r.gr.DB.QueryRowxContext(ctx, qu).StructScan(metric)
 	if err != nil {
-		return nil, fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer tx.Rollback()
-
-	if _, err := tx.ExecContext(ctx, qu); err != nil {
-		return nil, fmt.Errorf("create metric error during execute query: %w", err)
-	}
-
-	tx.Commit()
-
-	metric, err = r.Read(ctx, metric.ID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve metric after update: %w", err)
+		return nil, fmt.Errorf("failed to run insert: %w", err)
 	}
 
 	return metric, nil
@@ -95,10 +83,6 @@ func (r *MetricRepositoryImpl) ReadIDs(ctx context.Context) (*[]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read metrics error during querying: %w", err)
 	}
-	if rows.Err() != nil {
-		return nil, fmt.Errorf("read metrics error during querying: %w", err)
-	}
-	defer rows.Close()
 
 	var ids []string
 	for rows.Next() {
@@ -109,6 +93,11 @@ func (r *MetricRepositoryImpl) ReadIDs(ctx context.Context) (*[]string, error) {
 		}
 		ids = append(ids, id)
 	}
+
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("read metrics error during querying: %w", err)
+	}
+	defer rows.Close()
 
 	return &ids, nil
 }
@@ -135,10 +124,6 @@ func (r *MetricRepositoryImpl) ReadMany(
 	if err != nil {
 		return nil, fmt.Errorf("read metrics error during querying: %w", err)
 	}
-	if rows.Err() != nil {
-		return nil, fmt.Errorf("read metrics error during querying: %w", err)
-	}
-	defer rows.Close()
 
 	newMetrics := []model.Metric{}
 	for rows.Next() {
@@ -150,9 +135,10 @@ func (r *MetricRepositoryImpl) ReadMany(
 		newMetrics = append(newMetrics, metric)
 	}
 
-	if err == sql.ErrNoRows {
-		return nil, nil
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("read metrics error during querying: %w", err)
 	}
+	defer rows.Close()
 
 	return &newMetrics, nil
 }

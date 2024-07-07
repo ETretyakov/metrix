@@ -46,7 +46,7 @@ func (m *MetricControllerImpl) Set(
 
 func (m *MetricControllerImpl) SetMany(
 	ctx context.Context,
-	metricsIn []model.Metric,
+	metricsIn []*model.Metric,
 ) (bool, error) {
 	collapsedMapping := map[string]model.Metric{}
 	for _, metric := range metricsIn {
@@ -55,7 +55,7 @@ func (m *MetricControllerImpl) SetMany(
 			collapsed.SetValue(metric.Delta, metric.Value)
 			collapsedMapping[metric.ID] = collapsed
 		} else {
-			collapsedMapping[metric.ID] = metric
+			collapsedMapping[metric.ID] = *metric
 		}
 	}
 
