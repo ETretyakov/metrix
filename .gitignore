@@ -26,6 +26,7 @@ vendor/
 
 log/access.log
 log/error.log
+logs/stdout.log
 golangci-lint
 
 backup.json

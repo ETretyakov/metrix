@@ -115,6 +115,12 @@ func (h *MetricsHandlers) SetMany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(metricsIn) == 0 {
+		logger.Info(ctx, "payload is an empty array")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	_, err = h.controller.SetMany(ctx, metricsIn)
 	if err != nil {
 		var parsingValueError validators.ParsingValueError

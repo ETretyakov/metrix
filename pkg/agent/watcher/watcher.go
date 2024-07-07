@@ -110,6 +110,7 @@ func (w *Watcher) Report(
 	baseURL string,
 	interval time.Duration,
 	useBatching bool,
+	signKey string,
 ) {
 	ticker := time.NewTicker(interval)
 	for {
@@ -151,7 +152,7 @@ func (w *Watcher) Report(
 			w.mux.RUnlock()
 
 			if useBatching {
-				err = client.SendMetricBatch(ctx, baseURL, metrics)
+				err = client.SendMetricBatch(ctx, baseURL, metrics, signKey)
 				if err != nil {
 					logger.Error(
 						ctx,
@@ -161,7 +162,7 @@ func (w *Watcher) Report(
 					)
 				}
 			} else {
-				err = client.SendMetric(ctx, baseURL, metrics)
+				err = client.SendMetric(ctx, baseURL, metrics, signKey)
 				if err != nil {
 					logger.Error(
 						ctx,
