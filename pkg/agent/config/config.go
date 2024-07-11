@@ -62,6 +62,9 @@ func NewConfig() (*Config, error) {
 			"StackSys",
 			"Sys",
 			"TotalAlloc",
+			"TotalMemory",
+			"FreeMemory",
+			"CPUutilization",
 		}
 	}
 
