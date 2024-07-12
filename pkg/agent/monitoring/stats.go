@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand/v2"
+	"math/rand"
 	"metrix/pkg/logger"
 	"reflect"
 	"runtime"
