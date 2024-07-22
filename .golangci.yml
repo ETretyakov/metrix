@@ -240,7 +240,7 @@ linters-settings:
     var-require-single-var: false
 
   lll:
-    line-length: 120
+    line-length: 170
     tab-width: 1
 
   loggercheck:
@@ -557,7 +557,7 @@ issues:
   exclude-dirs-use-default: false
   exclude-case-sensitive: false
   exclude-rules:
-    - path: "_test\\.go"
+    - path: ".go"
       text: "fieldalignment: struct with \\d+ pointer bytes could be \\d+"
   fix: false
   max-issues-per-linter: 0

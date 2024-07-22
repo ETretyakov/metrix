@@ -17,8 +17,6 @@ func isFlagPassed(name string) bool {
 }
 
 func ParseFlags(cfg *Config) {
-	t := reflect.TypeOf(*cfg)
-
 	// General Types
 	var str string
 	strValues := map[string]*string{}
@@ -31,10 +29,14 @@ func ParseFlags(cfg *Config) {
 
 	fieldNames := map[string]string{}
 
+	t := reflect.TypeOf(*cfg)
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 
 		flagName := field.Tag.Get("flag")
+		if flagName == "" {
+			continue
+		}
 		flagShort := field.Tag.Get("flagShort")
 		flagDescription := field.Tag.Get("flagDescription")
 
