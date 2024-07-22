@@ -13,7 +13,7 @@ type Config struct {
 	Address          string        `env:"ADDRESS"              envDefault:"localhost:8080" flag:"address"         flagShort:"a"  flagDescription:"http address"`
 	PollInterval     int64         `env:"POLL_INTERVAL"        envDefault:"2"              flag:"poll_interval"   flagShort:"p"  flagDescription:"interval between polling"`
 	ReportInterval   int64         `env:"REPORT_INTERVAL"      envDefault:"10"             flag:"report_interval" flagShort:"r"  flagDescription:"interval between reporting"`
-	Goroutines       int64         `env:"GOROUTINES"           envDefault:"5"              flag:"goroutines"      flagShort:"l"  flagDescription:"number of goroutines"`
+	Goroutines       int64         `env:"RATE_LIMIT"           envDefault:"5"              flag:"goroutines"      flagShort:"l"  flagDescription:"number of goroutines"`
 	LogLevel         string        `env:"LOG_LEVEL"            envDefault:"info"           flag:"log_level"       flagShort:"o"  flagDescription:"level for logging"`
 	SignKey          string        `env:"KEY"                  envDefault:""               flag:"sign_key"        flagShort:"k"  flagDescription:"a key using for signing requests body"`
 	Metrics          []string      `env:"AGT_METRICS"          envDefault:"*"`
