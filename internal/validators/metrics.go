@@ -9,17 +9,17 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type MetricValidator struct {
+type MetricsValidatorImpl struct {
 	validate *validator.Validate
 }
 
-func NewMetricValidator() *MetricValidator {
-	return &MetricValidator{
+func NewMetricsValidator() *MetricsValidatorImpl {
+	return &MetricsValidatorImpl{
 		validate: validator.New(validator.WithRequiredStructEnabled()),
 	}
 }
 
-func (v *MetricValidator) FromVars(vars map[string]string) (*model.Metric, error) {
+func (v *MetricsValidatorImpl) FromVars(vars map[string]string) (*model.Metric, error) {
 	metric := &model.Metric{}
 
 	// Retrieving variables
@@ -82,7 +82,7 @@ func (v *MetricValidator) FromVars(vars map[string]string) (*model.Metric, error
 	return metric, nil
 }
 
-func (v *MetricValidator) FromBody(body io.ReadCloser) (*model.Metric, error) {
+func (v *MetricsValidatorImpl) FromBody(body io.ReadCloser) (*model.Metric, error) {
 	metric := &model.Metric{}
 
 	err := json.NewDecoder(body).Decode(metric)
@@ -105,7 +105,7 @@ func (v *MetricValidator) FromBody(body io.ReadCloser) (*model.Metric, error) {
 	return metric, nil
 }
 
-func (v *MetricValidator) ManyFromBody(body io.ReadCloser) ([]*model.Metric, error) {
+func (v *MetricsValidatorImpl) ManyFromBody(body io.ReadCloser) ([]*model.Metric, error) {
 	metrics := []*model.Metric{}
 
 	err := json.NewDecoder(body).Decode(&metrics)
