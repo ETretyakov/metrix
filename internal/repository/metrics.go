@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"metrix/internal/model"
 
 	"github.com/doug-martin/goqu/v9"

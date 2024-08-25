@@ -2,6 +2,7 @@ package closer
 
 import (
 	"context"
+
 	"metrix/pkg/logger"
 )
 

@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+
 	"metrix/internal/model"
 	"metrix/internal/repository"
 	"metrix/pkg/logger"

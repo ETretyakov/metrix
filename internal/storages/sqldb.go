@@ -6,8 +6,9 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"io"
-	"metrix/pkg/logger"
 	"time"
+
+	"metrix/pkg/logger"
 
 	"github.com/jackc/pgx"
 	"github.com/jmoiron/sqlx"

@@ -3,11 +3,12 @@ package http
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"metrix/internal/closer"
 	"metrix/internal/config"
 	"metrix/internal/handlers"
 	"metrix/pkg/logger"
-	"net/http"
 )
 
 type Server struct {

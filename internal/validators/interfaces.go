@@ -2,6 +2,7 @@ package validators
 
 import (
 	"io"
+
 	"metrix/internal/model"
 )
 

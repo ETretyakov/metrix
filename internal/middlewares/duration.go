@@ -2,9 +2,10 @@ package middlewares
 
 import (
 	"context"
-	"metrix/pkg/logger"
 	"net/http"
 	"time"
+
+	"metrix/pkg/logger"
 )
 
 type (

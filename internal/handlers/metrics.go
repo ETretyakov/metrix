@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"metrix/internal/controllers"
 	"metrix/internal/repository"
 	"metrix/internal/validators"
 	"metrix/pkg/logger"
-	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 )

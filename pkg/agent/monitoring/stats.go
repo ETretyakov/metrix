@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"metrix/pkg/logger"
 	"reflect"
 	"runtime"
 	"sync"
+
+	"metrix/pkg/logger"
 
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/v4/cpu"

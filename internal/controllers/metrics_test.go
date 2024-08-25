@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"context"
-	"metrix/internal/model"
-	"metrix/internal/repository"
 	"reflect"
 	"testing"
+
+	"metrix/internal/model"
+	"metrix/internal/repository"
 )
 
 func TestMetricControllerInMemoryStorageSet(t *testing.T) {

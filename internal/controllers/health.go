@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"context"
-	"metrix/internal/repository"
 	"sync"
+
+	"metrix/internal/repository"
 )
 
 type HealthControllerImpl struct {

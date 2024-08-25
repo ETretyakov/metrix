@@ -1,9 +1,10 @@
 package handlers
 
 import (
+	"net/http"
+
 	"metrix/internal/controllers"
 	"metrix/internal/repository"
-	"net/http"
 )
 
 type HealthHandlers struct {

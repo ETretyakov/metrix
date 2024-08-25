@@ -3,10 +3,11 @@ package monitoring
 import (
 	"context"
 	"fmt"
-	"metrix/pkg/agent/config"
-	"metrix/pkg/logger"
 	"strings"
 	"time"
+
+	"metrix/pkg/agent/config"
+	"metrix/pkg/logger"
 )
 
 type Watcher struct {

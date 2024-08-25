@@ -5,11 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"metrix/internal/config"
-	"metrix/pkg/logger"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"metrix/internal/config"
+	"metrix/pkg/logger"
 
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/pressly/goose/v3"

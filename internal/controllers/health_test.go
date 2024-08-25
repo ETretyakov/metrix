@@ -2,9 +2,10 @@ package controllers
 
 import (
 	"context"
-	"metrix/internal/repository"
 	"sync"
 	"testing"
+
+	"metrix/internal/repository"
 
 	"github.com/stretchr/testify/assert"
 )

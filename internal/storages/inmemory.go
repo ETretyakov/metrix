@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"metrix/internal/model"
-	"metrix/pkg/logger"
 	"os"
 	"sync"
 	"time"
+
+	"metrix/internal/model"
+	"metrix/pkg/logger"
 )
 
 type MemoryStorage struct {

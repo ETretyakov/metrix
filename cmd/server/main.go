@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
-	"metrix/internal/app"
-	"metrix/internal/config"
-	"metrix/internal/middlewares"
-	"metrix/pkg/logger"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"metrix/internal/app"
+	"metrix/internal/config"
+	"metrix/internal/middlewares"
+	"metrix/pkg/logger"
 )
 
 func main() {

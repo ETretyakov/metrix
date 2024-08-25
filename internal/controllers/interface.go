@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+
 	"metrix/internal/model"
 )
 

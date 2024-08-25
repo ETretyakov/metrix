@@ -3,8 +3,9 @@ package validators
 import (
 	"encoding/json"
 	"io"
-	"metrix/internal/model"
 	"strconv"
+
+	"metrix/internal/model"
 
 	"github.com/go-playground/validator/v10"
 )

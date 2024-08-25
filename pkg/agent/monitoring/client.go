@@ -9,9 +9,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"metrix/pkg/logger"
 	"net/http"
 	"time"
+
+	"metrix/pkg/logger"
 
 	"github.com/go-resty/resty/v2"
 )
