@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"log"
 	"metrix/internal/app"
 	"metrix/internal/config"
 	"metrix/internal/middlewares"
 	"metrix/pkg/logger"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,6 +30,6 @@ func main() {
 	middlewares.SetSignKey(cfg.SignKey)
 
 	if err := app.Run(ctx, cfg); err != nil {
-		log.Fatalf("error running http server: %v", err)
+		logger.Error(ctx, "error running http server", err)
 	}
 }
