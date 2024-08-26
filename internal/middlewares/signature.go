@@ -16,10 +16,12 @@ import (
 
 var signKey string = ""
 
+// SetSignKey - the function that sets string for a global variable.
 func SetSignKey(key string) {
 	signKey = key
 }
 
+// SignatureMiddleware - the net/http middleware function to signt http content.
 func SignatureMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		hashSum := r.Header.Get("HashSHA256")
@@ -33,7 +35,10 @@ func SignatureMiddleware(next http.Handler) http.Handler {
 					"method", r.Method,
 				)
 			}
-			r.Body.Close()
+			if err := r.Body.Close(); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 			r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 			h := hmac.New(sha256.New, []byte(signKey))

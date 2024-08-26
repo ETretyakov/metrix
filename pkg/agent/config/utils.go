@@ -16,7 +16,7 @@ func isFlagPassed(name string) bool {
 	return found
 }
 
-func ParseFlags(cfg *Config) {
+func parseFlags(cfg *Config) {
 	// General Types
 	var str string
 	strValues := map[string]*string{}

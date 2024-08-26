@@ -16,7 +16,7 @@ func isFlagPassed(name string) bool {
 	return found
 }
 
-func ParseFlags(cfg *Config) {
+func parseFlags(cfg *Config) {
 	t := reflect.TypeOf(*cfg)
 
 	// Custom Types

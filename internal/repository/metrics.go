@@ -1,3 +1,4 @@
+// Module "repositry" that holds the functionality that is related to database communication.
 package repository
 
 import (
@@ -8,20 +9,24 @@ import (
 	"metrix/internal/model"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/pkg/errors"
 )
 
 const metricTName = "mtr_metrics"
 
+// MetricRepositoryImpl - the structure for implementation of the MetricRepository concept.
 type MetricRepositoryImpl struct {
 	gr *Group
 }
 
+// NewMetricRepository - the builder function for MetricRepositoryImpl.
 func NewMetricRepository(db *Group) *MetricRepositoryImpl {
 	return &MetricRepositoryImpl{
 		gr: db,
 	}
 }
 
+// Create - the method to insert metric into database table.
 func (r *MetricRepositoryImpl) Create(
 	ctx context.Context,
 	metric *model.Metric,
@@ -32,7 +37,7 @@ func (r *MetricRepositoryImpl) Create(
 		Returning("id", "mtype", "delta", "value").
 		ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("create metric error during query building: %w", err)
+		return nil, errors.Wrapf(err, "create metric error during query building")
 	}
 
 	err = r.gr.DB.QueryRowxContext(ctx, qu).StructScan(metric)
@@ -43,6 +48,7 @@ func (r *MetricRepositoryImpl) Create(
 	return metric, nil
 }
 
+// Read - the method to read metric record from database.
 func (r *MetricRepositoryImpl) Read(
 	ctx context.Context,
 	metricID string,
@@ -60,17 +66,18 @@ func (r *MetricRepositoryImpl) Read(
 	var newMetric model.Metric
 	row := r.gr.DB.QueryRowxContext(ctx, qu)
 	err = row.StructScan(&newMetric)
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("read metric error during scan row: %w", err)
 	}
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 
 	return &newMetric, nil
 }
 
+// ReadIDs - the method that retrieves metrics ids.
 func (r *MetricRepositoryImpl) ReadIDs(ctx context.Context) (*[]string, error) {
 	qu, _, err := goqu.
 		Select("id").
@@ -98,11 +105,16 @@ func (r *MetricRepositoryImpl) ReadIDs(ctx context.Context) (*[]string, error) {
 	if rows.Err() != nil {
 		return nil, fmt.Errorf("read metrics error during querying: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			return
+		}
+	}()
 
 	return &ids, nil
 }
 
+// ReadMany - the method to read metrics in batch.
 func (r *MetricRepositoryImpl) ReadMany(
 	ctx context.Context,
 	metricIDs []string,
@@ -139,11 +151,16 @@ func (r *MetricRepositoryImpl) ReadMany(
 	if rows.Err() != nil {
 		return nil, fmt.Errorf("read metrics error during querying: %w", err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			return
+		}
+	}()
 
 	return &newMetrics, nil
 }
 
+// Update - the method to update metric record.
 func (r *MetricRepositoryImpl) Update(
 	ctx context.Context,
 	metric *model.Metric,
@@ -161,7 +178,11 @@ func (r *MetricRepositoryImpl) Update(
 	if err != nil {
 		return nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			return
+		}
+	}()
 
 	if _, err := tx.ExecContext(ctx, qu); err != nil {
 		return nil, fmt.Errorf("update metric error during execute query: %w", err)
@@ -169,14 +190,17 @@ func (r *MetricRepositoryImpl) Update(
 
 	metricOut, err := r.Read(ctx, metric.ID)
 	if err != nil {
-		return nil, fmt.Errorf("refresh metric error: %w", err)
+		return nil, errors.Wrapf(err, "refresh metric error")
 	}
 
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return nil, errors.Wrapf(err, "failed to commit")
+	}
 
 	return metricOut, nil
 }
 
+// UpsertMany - the method to insert/update metric record in batch.
 func (r *MetricRepositoryImpl) UpsertMany(
 	ctx context.Context,
 	metrics []model.Metric,
@@ -185,7 +209,12 @@ func (r *MetricRepositoryImpl) UpsertMany(
 	if err != nil {
 		return false, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+
+	defer func() {
+		if err := tx.Rollback(); err != nil {
+			return
+		}
+	}()
 
 	rowsIn := []any{}
 	for _, m := range metrics {
@@ -201,11 +230,14 @@ func (r *MetricRepositoryImpl) UpsertMany(
 		return false, fmt.Errorf("failed to upsert metric: %w", err)
 	}
 
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return false, errors.Wrapf(err, "failed to commit")
+	}
 
 	return true, nil
 }
 
+// Delete - the method to remove records from the database.
 func (r *MetricRepositoryImpl) Delete(
 	ctx context.Context,
 	metricID string,
@@ -225,6 +257,7 @@ func (r *MetricRepositoryImpl) Delete(
 	return nil
 }
 
+// PingDB - the method to ping database connection.
 func (r *MetricRepositoryImpl) PingDB(ctx context.Context) bool {
 	err := r.gr.DB.PingDB(ctx)
 	return err == nil

@@ -2,12 +2,14 @@ package storages
 
 import (
 	"context"
-	"errors"
 	"math"
 	"math/rand"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
+// Strategy - the type function that declares function signature.
 type Strategy func(ctx context.Context) chan struct{}
 
 func sleep(ctx context.Context, duration time.Duration) {
@@ -19,6 +21,7 @@ func sleep(ctx context.Context, duration time.Duration) {
 	}
 }
 
+// Backoff - the function that manages retry behaviour.
 func Backoff(repeats int, dur time.Duration, factor float64, jitter bool) Strategy {
 	return func(ctx context.Context) chan struct{} {
 		ch := make(chan struct{})
@@ -43,6 +46,7 @@ func Backoff(repeats int, dur time.Duration, factor float64, jitter bool) Strate
 	}
 }
 
+// Do - the function that performs retry operations.
 func (r *Retryer) Do(ctx context.Context, fn func() error, errs ...error) (err error) {
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
@@ -53,7 +57,8 @@ func (r *Retryer) Do(ctx context.Context, fn func() error, errs ...error) (err e
 	for {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			err = errors.Wrapf(ctx.Err(), "failed to close with context")
+			return
 		case _, ok := <-ch:
 			if !ok {
 				return err

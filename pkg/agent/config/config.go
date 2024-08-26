@@ -1,3 +1,4 @@
+// Module "config" holds configuration structures for agent configrations.
 package config
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/caarlos0/env"
 )
 
+// Config - the structure that keeps main agent config.
 type Config struct {
 	Address          string        `env:"ADDRESS"              envDefault:"localhost:8080" flag:"address"         flagShort:"a"  flagDescription:"http address"`
 	PollInterval     int64         `env:"POLL_INTERVAL"        envDefault:"2"              flag:"poll_interval"   flagShort:"p"  flagDescription:"interval between polling"`
@@ -23,6 +25,7 @@ type Config struct {
 	RetryMaxWaitTime time.Duration `env:"RETRY_MAX_WAIT_TIME"  envDefault:"5s"`
 }
 
+// NewConfig - the builder function for Config.
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 	if err := env.Parse(cfg); err != nil {
@@ -68,7 +71,7 @@ func NewConfig() (*Config, error) {
 		}
 	}
 
-	ParseFlags(cfg)
+	parseFlags(cfg)
 
 	return cfg, nil
 }

@@ -10,16 +10,19 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+// MetricsValidatorImpl - the implementation structure for validations.
 type MetricsValidatorImpl struct {
 	validate *validator.Validate
 }
 
+// NewMetricsValidator - the builder function for MetricsValidatorImpl.
 func NewMetricsValidator() *MetricsValidatorImpl {
 	return &MetricsValidatorImpl{
 		validate: validator.New(validator.WithRequiredStructEnabled()),
 	}
 }
 
+// FromVars - the function that parses metric structure from map object.
 func (v *MetricsValidatorImpl) FromVars(vars map[string]string) (*model.Metric, error) {
 	metric := &model.Metric{}
 
@@ -83,6 +86,7 @@ func (v *MetricsValidatorImpl) FromVars(vars map[string]string) (*model.Metric, 
 	return metric, nil
 }
 
+// FromBody - the function that parses metric structure from reader.
 func (v *MetricsValidatorImpl) FromBody(body io.ReadCloser) (*model.Metric, error) {
 	metric := &model.Metric{}
 
@@ -106,6 +110,7 @@ func (v *MetricsValidatorImpl) FromBody(body io.ReadCloser) (*model.Metric, erro
 	return metric, nil
 }
 
+// FromBody - the function that parses many metric structures from reader.
 func (v *MetricsValidatorImpl) ManyFromBody(body io.ReadCloser) ([]*model.Metric, error) {
 	metrics := []*model.Metric{}
 

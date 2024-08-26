@@ -17,6 +17,7 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+// Client - the structure that describes metric client concept.
 type Client struct {
 	client      *resty.Client
 	baseURL     string
@@ -24,6 +25,7 @@ type Client struct {
 	useBatching bool
 }
 
+// NewClient - the builder function for the Client.
 func NewClient(
 	ctx context.Context,
 	baseURL string,
@@ -185,6 +187,7 @@ func (c Client) sendMetric(
 	return nil
 }
 
+// SendMetrics - the method for sending metrics via metric client.
 func (c Client) SendMetrics(ctx context.Context, metrics []*Metric) error {
 	if c.useBatching {
 		err := c.sendMetricBatch(ctx, metrics)

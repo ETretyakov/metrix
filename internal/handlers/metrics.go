@@ -19,11 +19,14 @@ const (
 	parseErrMsg string = "failed to parse payload: %v"
 )
 
+// MetricsHandlers - the implementation structure for the MetricsHandlers that manages
+// access to the related controller.
 type MetricsHandlers struct {
 	controller controllers.MetricsController
 	validator  validators.MetricsValidator
 }
 
+// NewMetricsHandlers - the builder function for the MetricsHandlers.
 func NewMetricsHandlers(repoGroup *repository.Group) *MetricsHandlers {
 	return &MetricsHandlers{
 		controller: controllers.NewMetricController(repoGroup),
@@ -31,6 +34,8 @@ func NewMetricsHandlers(repoGroup *repository.Group) *MetricsHandlers {
 	}
 }
 
+// Set - the handler method that incapsulates validation logic for setting metrics
+// values functionality.
 func (h *MetricsHandlers) Set(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
@@ -61,6 +66,8 @@ func (h *MetricsHandlers) Set(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// SetWithModel - the handler method that incapsulates validation logic for setting metrics
+// values functionality in batching mode with dedicated model.
 func (h *MetricsHandlers) SetWithModel(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -106,6 +113,8 @@ func (h *MetricsHandlers) SetWithModel(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// SetMany - the handler method that incapsulates validation logic for setting metrics
+// values functionality in batching mode.
 func (h *MetricsHandlers) SetMany(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -143,6 +152,7 @@ func (h *MetricsHandlers) SetMany(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// Get - the handler method that incapsulates validation logic for getting metrics.
 func (h *MetricsHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
@@ -171,6 +181,8 @@ func (h *MetricsHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetWithModel - the handler method that incapsulates validation logic for getting
+// metrics with dedicated model.
 func (h *MetricsHandlers) GetWithModel(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -215,6 +227,7 @@ func (h *MetricsHandlers) GetWithModel(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetIDs - the handler method that incapsulates validation logic for getting metrics ids.
 func (h *MetricsHandlers) GetIDs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 

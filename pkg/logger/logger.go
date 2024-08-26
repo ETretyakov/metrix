@@ -1,3 +1,4 @@
+// Module "logger" unifies approaches for logging.
 package logger
 
 import (
@@ -23,6 +24,7 @@ func init() {
 	globalLogger = bootstrapLogger
 }
 
+// InitDefault - the builder function to setup default logger.
 func InitDefault(level string) {
 	globalOutput = os.Stderr
 
@@ -43,6 +45,7 @@ func InitDefault(level string) {
 	GlobalLevelFromString(level)
 }
 
+// Init - the builder function to init logger with options.
 func Init(w io.Writer, level string, opts ...Option) {
 	if w == nil {
 		w = os.Stderr
@@ -82,22 +85,27 @@ func consoleWriterSetup(out io.Writer) func(cw *zerolog.ConsoleWriter) {
 	}
 }
 
+// Debug - the function for debug logs.
 func Debug(ctx context.Context, msg string, kv ...any) {
 	globalLogger.Debug().Fields(kv).Msg(msg)
 }
 
+// Info - the function for info logs.
 func Info(ctx context.Context, msg string, kv ...any) {
 	globalLogger.Info().Fields(kv).Msg(msg)
 }
 
+// Warn - the function for warn logs.
 func Warn(ctx context.Context, msg string, kv ...any) {
 	globalLogger.Warn().Fields(kv).Msg(msg)
 }
 
+// Error - the function for error logs.
 func Error(ctx context.Context, msg string, err error, kv ...any) {
 	globalLogger.Error().Fields(kv).Err(err).Msg(msg)
 }
 
+// Fatal - the function for fatal logs.
 func Fatal(ctx context.Context, msg string, err error, kv ...any) {
 	globalLogger.Fatal().Fields(kv).Err(err).Msg(msg)
 }

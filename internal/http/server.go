@@ -1,16 +1,19 @@
+// Module "http" aggregates functionality to launch and manage HTTP-server.
 package http
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"metrix/internal/closer"
 	"metrix/internal/config"
 	"metrix/internal/handlers"
 	"metrix/pkg/logger"
+
+	"github.com/pkg/errors"
 )
 
+// Server - the structure that holds HTTP-server config and related handlers.
 type Server struct {
 	cfg     *config.Config
 	srv     *http.Server
@@ -18,6 +21,7 @@ type Server struct {
 	metrics *handlers.MetricsHandlers
 }
 
+// New - the builder function for server entity.
 func New(
 	cfg *config.Config,
 	healthHandlers *handlers.HealthHandlers,
@@ -35,11 +39,12 @@ func New(
 	}
 }
 
+// Start - the method to start the http-server.
 func (s *Server) Start(ctx context.Context) {
 	s.srv.Handler = s.setupRoutes()
 
 	go func() {
-		logger.Info(ctx, fmt.Sprintf("starting listening http srv at %s", s.cfg.HTTPAddress))
+		logger.Info(ctx, "starting listening http srv at "+s.cfg.HTTPAddress)
 		if err := s.srv.ListenAndServe(); err != http.ErrServerClosed {
 			logger.Fatal(ctx, "error start http srv, err: %+v", err)
 		}
@@ -48,11 +53,12 @@ func (s *Server) Start(ctx context.Context) {
 	closer.Add(s.Close)
 }
 
+// Close - the method to close the http-server.
 func (s *Server) Close() error {
 	ctx := context.TODO()
 	if err := s.srv.Shutdown(ctx); err != nil {
 		logger.Error(ctx, "error stop http srv, err", err)
-		return err
+		return errors.Wrapf(err, "close server error")
 	}
 
 	logger.Info(ctx, "http server shutdown done")

@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"metrix/pkg/logger"
+
+	"github.com/pkg/errors"
 )
 
 type (
@@ -20,17 +22,20 @@ type (
 	}
 )
 
+// Write - the logging method for wirting messages.
 func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size
-	return size, err
+	return size, errors.Wrapf(err, "error while writing response")
 }
 
+// WriteHeader - the logging method for wirting to header.
 func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.ResponseWriter.WriteHeader(statusCode)
 	r.responseData.status = statusCode
 }
 
+// LoggingMiddleware - the net/http middleware for logging handlers performance.
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

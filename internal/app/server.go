@@ -1,3 +1,4 @@
+// Module "app" is the entrypoint for the HTTP serive.
 package app
 
 import (
@@ -19,6 +20,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// Run - launches web-server for metrics aggregation.
 func Run(ctx context.Context, cfg *config.Config) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 
