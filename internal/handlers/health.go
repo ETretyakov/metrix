@@ -33,6 +33,13 @@ func (h *HealthHandlers) SetLiveness(state bool) {
 }
 
 // ReadinessState - the method that gets "readiness" status for the service via handler.
+// @Tags Info
+// @Summary Query to retrieve service readiness state
+// @ID infoReadiness
+// @Produce plain
+// @Success 200
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /readiness [get]
 func (h *HealthHandlers) ReadinessState(w http.ResponseWriter, r *http.Request) {
 	if h.controller.ReadinessState() {
 		w.WriteHeader(http.StatusOK)
@@ -43,6 +50,13 @@ func (h *HealthHandlers) ReadinessState(w http.ResponseWriter, r *http.Request) 
 }
 
 // LivenessState - the method that gets "liveness" status for the service via handler.
+// @Tags Info
+// @Summary Query to retrieve service liveness state
+// @ID infoLiveness
+// @Produce plain
+// @Success 200
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /liveness [get]
 func (h *HealthHandlers) LivenessState(w http.ResponseWriter, r *http.Request) {
 	if h.controller.LivenessState() {
 		w.WriteHeader(http.StatusOK)
@@ -53,6 +67,13 @@ func (h *HealthHandlers) LivenessState(w http.ResponseWriter, r *http.Request) {
 }
 
 // PingDB - the method that checks database access in the runtime via handler.
+// @Tags Info
+// @Summary Query to retrieve service database connection state
+// @ID infoPingDB
+// @Produce plain
+// @Success 200
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /liveness [get]
 func (h *HealthHandlers) PingDB(w http.ResponseWriter, r *http.Request) {
 	if h.controller.PingDB() {
 		w.WriteHeader(http.StatusOK)

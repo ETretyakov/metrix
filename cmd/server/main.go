@@ -13,6 +13,14 @@ import (
 	"metrix/pkg/logger"
 )
 
+// @Title MetrixAPI
+// @Description The backend service for metrics aggregation
+// @Version 1.0.0
+// @Contact.email etretyakov@kaf65.ru
+// @BasePath api/v1
+// @Host localhost:8080
+//
+
 func main() {
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
