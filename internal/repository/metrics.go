@@ -259,6 +259,6 @@ func (r *MetricRepositoryImpl) Delete(
 
 // PingDB - the method to ping database connection.
 func (r *MetricRepositoryImpl) PingDB(ctx context.Context) bool {
-	err := r.gr.DB.PingDB(ctx)
+	err := r.gr.PingDB(ctx)
 	return err == nil
 }

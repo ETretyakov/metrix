@@ -5,6 +5,9 @@ import (
 
 	"metrix/internal/model"
 	"metrix/internal/storages"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
 // MetricRepository - the interface that describes all metric repository methods.
@@ -21,15 +24,23 @@ type MetricRepository interface {
 
 // Group - the structure that stores all necessary repositories.
 type Group struct {
-	DB *storages.SQLDB
+	DB *sqlx.DB
 
 	MetricRepo MetricRepository
+}
+
+// PingDB - the method to pind database.
+func (r *Group) PingDB(ctx context.Context) error {
+	if err := r.DB.PingContext(ctx); err != nil {
+		return errors.Wrapf(err, "failed to ping db")
+	}
+	return nil
 }
 
 // NewGroup - the builder function for Group structure.
 func NewGroup(
 	ctx context.Context,
-	db *storages.SQLDB,
+	db *sqlx.DB,
 	filePath string,
 	storeInterval int64,
 	restore bool,
