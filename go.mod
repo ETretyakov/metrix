@@ -3,6 +3,7 @@ module metrix
 go 1.21.12
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/doug-martin/goqu/v9 v9.19.0
