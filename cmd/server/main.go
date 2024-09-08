@@ -13,13 +13,18 @@ import (
 	"metrix/pkg/logger"
 )
 
+var (
+	buildVersion = "N/A"
+	buildData    = "N/A"
+	buildCommit  = "N/A"
+)
+
 // @Title MetrixAPI
 // @Description The backend service for metrics aggregation
 // @Version 1.0.0
 // @Contact.email etretyakov@kaf65.ru
 // @BasePath api/v1
-// @Host localhost:8080
-//
+// @Host localhost:8080.
 
 func main() {
 	ctx, cancel := signal.NotifyContext(
@@ -35,6 +40,10 @@ func main() {
 	}
 
 	logger.InitDefault(cfg.LogLevel)
+
+	logger.Info(ctx, "Build version: "+buildVersion)
+	logger.Info(ctx, "Build data: "+buildData)
+	logger.Info(ctx, "Build commit: "+buildCommit)
 
 	middlewares.SetSignKey(cfg.SignKey)
 

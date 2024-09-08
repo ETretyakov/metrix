@@ -2,8 +2,6 @@ module metrix
 
 go 1.22.1
 
-toolchain go1.22.2
-
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/caarlos0/env v3.5.0+incompatible
