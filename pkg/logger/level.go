@@ -7,8 +7,10 @@ import (
 	"github.com/rs/zerolog"
 )
 
+// Level - type to declare logger options.
 type Level = int
 
+// Logger levels describes as int.
 const (
 	TraceLevel Level = iota - 1
 	DebugLevel
@@ -20,6 +22,7 @@ const (
 	DisabledLevel = 7
 )
 
+// GlobalLevel - the function to set up the global logging level.
 func GlobalLevel(l Level) {
 	if l != DisabledLevel {
 		l = min(max(l, TraceLevel), ErrorLevel)
@@ -28,12 +31,14 @@ func GlobalLevel(l Level) {
 	zerolog.SetGlobalLevel(zerolog.Level(l))
 }
 
+// GlobalLevelFromString - the function that sets up the global logging level using string.
 func GlobalLevelFromString(str string) {
 	level, _ := ParseLevel(str)
 
 	GlobalLevel(level)
 }
 
+// ParseLevel - the function that parses the global logging level using string.
 func ParseLevel(str string) (Level, error) {
 	switch strings.ToLower(strings.TrimSpace(str)) {
 	case zerolog.Level(TraceLevel).String():

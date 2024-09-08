@@ -5,12 +5,12 @@ import (
 
 	"metrix/internal/model"
 	"metrix/internal/storages"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
-type FactoryExecutor interface {
-	MetricRepository() MetricRepository
-}
-
+// MetricRepository - the interface that describes all metric repository methods.
 type MetricRepository interface {
 	Create(ctx context.Context, metric *model.Metric) (*model.Metric, error)
 	Read(ctx context.Context, metricID string) (*model.Metric, error)
@@ -22,15 +22,25 @@ type MetricRepository interface {
 	PingDB(ctx context.Context) bool
 }
 
+// Group - the structure that stores all necessary repositories.
 type Group struct {
-	DB *storages.SQLDB
+	DB *sqlx.DB
 
 	MetricRepo MetricRepository
 }
 
+// PingDB - the method to pind database.
+func (r *Group) PingDB(ctx context.Context) error {
+	if err := r.DB.PingContext(ctx); err != nil {
+		return errors.Wrapf(err, "failed to ping db")
+	}
+	return nil
+}
+
+// NewGroup - the builder function for Group structure.
 func NewGroup(
 	ctx context.Context,
-	db *storages.SQLDB,
+	db *sqlx.DB,
 	filePath string,
 	storeInterval int64,
 	restore bool,
@@ -41,7 +51,7 @@ func NewGroup(
 		group.DB = db
 		group.MetricRepo = NewMetricRepository(group)
 	} else {
-		group.MetricRepo = storages.NewInMemmoryStorage(ctx, filePath, storeInterval, restore)
+		group.MetricRepo = storages.NewInMemoryStorage(ctx, filePath, storeInterval, restore)
 	}
 
 	return group

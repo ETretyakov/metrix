@@ -2,15 +2,24 @@ package main
 
 import (
 	"context"
-	"log"
+	_ "net/http/pprof"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"metrix/internal/app"
 	"metrix/internal/config"
 	"metrix/internal/middlewares"
 	"metrix/pkg/logger"
-	"os"
-	"os/signal"
-	"syscall"
 )
+
+// @Title MetrixAPI
+// @Description The backend service for metrics aggregation
+// @Version 1.0.0
+// @Contact.email etretyakov@kaf65.ru
+// @BasePath api/v1
+// @Host localhost:8080
+//
 
 func main() {
 	ctx, cancel := signal.NotifyContext(
@@ -30,6 +39,6 @@ func main() {
 	middlewares.SetSignKey(cfg.SignKey)
 
 	if err := app.Run(ctx, cfg); err != nil {
-		log.Fatalf("error running http server: %v", err)
+		logger.Error(ctx, "error running http server", err)
 	}
 }

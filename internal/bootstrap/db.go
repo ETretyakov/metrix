@@ -1,3 +1,4 @@
+// Module "bootstrap" aggragtes all the operations related to service bootstrap.
 package bootstrap
 
 import (
@@ -15,6 +16,7 @@ import (
 	_ "github.com/jackc/pgx/stdlib"
 )
 
+// Migrate - function to perform database migration operations.
 func Migrate(ctx context.Context, cfg *config.Postgres) {
 	db, err := goose.OpenDBWithDriver("pgx", cfg.DSN)
 	if err != nil {
@@ -37,6 +39,7 @@ func Migrate(ctx context.Context, cfg *config.Postgres) {
 	}
 }
 
+// InitDB - function that performs initiation of the service database.
 func InitDB(ctx context.Context, cfg *config.Postgres) (*sqlx.DB, error) {
 	logger.Info(ctx, "migrating db")
 	Migrate(ctx, cfg)

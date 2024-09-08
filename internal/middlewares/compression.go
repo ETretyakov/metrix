@@ -1,3 +1,4 @@
+// Module "middlewares" holds functions that are used as net/http middlewares.
 package middlewares
 
 import (
@@ -5,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type compressWriter struct {
@@ -19,23 +22,34 @@ func newCompressWriter(w http.ResponseWriter) *compressWriter {
 	}
 }
 
+// Header - the function that retrieves header from the reponse writer.
 func (c *compressWriter) Header() http.Header {
 	return c.w.Header()
 }
 
+// Write - the function that writes to the response.
 func (c *compressWriter) Write(p []byte) (int, error) {
-	return c.zw.Write(p)
+	if n, err := c.zw.Write(p); err != nil {
+		return 0, errors.Wrapf(err, "failed to close writer")
+	} else {
+		return n, nil
+	}
 }
 
+// Write - the function that writes header to the response.
 func (c *compressWriter) WriteHeader(statusCode int) {
-	if statusCode < 300 {
+	if statusCode <= http.StatusMultipleChoices {
 		c.w.Header().Set("Content-Encoding", "gzip")
 	}
 	c.w.WriteHeader(statusCode)
 }
 
+// Close - the function that closes the response writer.
 func (c *compressWriter) Close() error {
-	return c.zw.Close()
+	if err := c.zw.Close(); err != nil {
+		return errors.Wrapf(err, "failed to close writer")
+	}
+	return nil
 }
 
 type compressReader struct {
@@ -46,7 +60,7 @@ type compressReader struct {
 func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	zr, err := gzip.NewReader(r)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "failed to create reader")
 	}
 
 	return &compressReader{
@@ -55,17 +69,29 @@ func newCompressReader(r io.ReadCloser) (*compressReader, error) {
 	}, nil
 }
 
+// Read - the function that reads compressed data.
 func (c compressReader) Read(p []byte) (n int, err error) {
-	return c.zr.Read(p)
+	if n, err := c.zr.Read(p); err != nil {
+		return 0, errors.Wrapf(err, "failed to read")
+	} else {
+		return n, nil
+	}
 }
 
+// Close - the function that closes the reader of compressed data.
 func (c *compressReader) Close() error {
 	if err := c.r.Close(); err != nil {
-		return err
+		return errors.Wrapf(err, "fialed to close compress reader")
 	}
-	return c.zr.Close()
+
+	if err := c.zr.Close(); err != nil {
+		return errors.Wrapf(err, "fialed to close compress reader")
+	}
+
+	return nil
 }
 
+// GzipMiddleware - the middleware function that enables compression for http communicztion.
 func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ow := w
@@ -75,7 +101,11 @@ func GzipMiddleware(next http.Handler) http.Handler {
 		if supportsGzip {
 			cw := newCompressWriter(w)
 			ow = cw
-			defer cw.Close()
+			defer func() {
+				if err := cw.Close(); err != nil {
+					return
+				}
+			}()
 			w.Header().Set("Content-Encoding", "gzip")
 		}
 
@@ -88,7 +118,11 @@ func GzipMiddleware(next http.Handler) http.Handler {
 				return
 			}
 			r.Body = cr
-			defer cr.Close()
+			defer func() {
+				if err := cr.Close(); err != nil {
+					return
+				}
+			}()
 		}
 
 		next.ServeHTTP(ow, r)

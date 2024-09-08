@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestHealthControllerLivenessState(t *testing.T) {
+func TestHealthControllerImpl_SetLiveness(t *testing.T) {
 	ctx := context.Background()
 	repoGroup := repository.NewGroup(ctx, nil, "", 0, false)
 	controller := NewHealthController(repoGroup)
@@ -30,7 +30,7 @@ func TestHealthControllerLivenessState(t *testing.T) {
 	assert.Equal(t, true, livenessState)
 }
 
-func TestHealthControllerReadinessState(t *testing.T) {
+func TestHealthControllerImpl_SetReadiness(t *testing.T) {
 	ctx := context.Background()
 	repoGroup := repository.NewGroup(ctx, nil, "", 0, false)
 	controller := NewHealthController(repoGroup)

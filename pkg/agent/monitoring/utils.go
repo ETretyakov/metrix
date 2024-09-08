@@ -3,8 +3,9 @@ package monitoring
 import (
 	"context"
 	"fmt"
-	"metrix/pkg/logger"
 	"reflect"
+
+	"metrix/pkg/logger"
 )
 
 func fieldToFloat64(

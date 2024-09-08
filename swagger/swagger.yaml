@@ -1,0 +1,40 @@
+basePath: api/v1
+host: localhost:8080
+info:
+  contact:
+    email: etretyakov@kaf65.ru
+  description: The backend service for metrics aggregation
+  title: MetrixAPI
+  version: 1.0.0
+paths:
+  /liveness:
+    get:
+      operationId: infoPingDB
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Query to retrieve service database connection state
+      tags:
+      - Info
+  /readiness:
+    get:
+      operationId: infoReadiness
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Query to retrieve service readiness state
+      tags:
+      - Info
+swagger: "2.0"

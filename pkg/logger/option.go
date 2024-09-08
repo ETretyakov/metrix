@@ -15,13 +15,16 @@ const (
 	VersionFieldName            = "version"
 )
 
+// DefaultOptions - the variable for default options.
 var DefaultOptions = []Option{
 	WithDefaults(),
 	WithDefaultTimeFormat(),
 }
 
+// Option - the type function for logger options.
 type Option func()
 
+// WithDefaults - the method to add default options for a logger.
 func WithDefaults() Option {
 	return func() {
 		zerolog.TimestampFieldName = TimestampFieldName
@@ -34,18 +37,21 @@ func WithDefaults() Option {
 	}
 }
 
+// WithStack - the method to add stack option.
 func WithStack() Option {
 	return func() {
 		withStack = true
 	}
 }
 
+// WithCaller - the method to add caller option.
 func WithCaller() Option {
 	return func() {
 		withCaller = true
 	}
 }
 
+// WithConsoleWriter - the method to add console writer option.
 func WithConsoleWriter() Option {
 	return func() {
 		withConsoleWriter = true
@@ -53,6 +59,7 @@ func WithConsoleWriter() Option {
 	}
 }
 
+// WithDefaultTimeFormat - the method to add default time format option.
 func WithDefaultTimeFormat() Option {
 	return func() {
 		zerolog.TimeFieldFormat = DefaultTimeFieldFormat

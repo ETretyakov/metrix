@@ -5,15 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"metrix/pkg/logger"
 	"reflect"
 	"runtime"
 	"sync"
+
+	"metrix/pkg/logger"
 
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/v4/cpu"
 )
 
+// Stats - the function for all collactible stats.
 type Stats struct {
 	Alloc          float64   `metricType:"gauge"   metricGroup:"runtime"`
 	BuckHashSys    float64   `metricType:"gauge"   metricGroup:"runtime"`
@@ -50,6 +52,7 @@ type Stats struct {
 	mux            *sync.RWMutex
 }
 
+// Metric - the structure for Metric validation.
 type Metric struct {
 	ID    string   `json:"id"`
 	MType string   `json:"type"`
@@ -57,6 +60,7 @@ type Metric struct {
 	Value *float64 `json:"value,omitempty"`
 }
 
+// NewStats - the builder function for Stats.
 func NewStats() *Stats {
 	return &Stats{
 		mux:            &sync.RWMutex{},
@@ -64,6 +68,7 @@ func NewStats() *Stats {
 	}
 }
 
+// Read - the method for retrieving stats from runtime.
 func (rs *Stats) Read(ctx context.Context, metrics ...string) error {
 	if rs == nil {
 		return errors.New("failed to read metrics for nil pointer")
@@ -165,18 +170,21 @@ func (rs *Stats) Read(ctx context.Context, metrics ...string) error {
 	return nil
 }
 
+// IncrementPollCount - the method to increment poll count.
 func (rs *Stats) IncrementPollCount() {
 	rs.mux.Lock()
 	rs.PollCount++
 	rs.mux.Unlock()
 }
 
+// ResetPollCount - the method to reset poll count.
 func (rs *Stats) ResetPollCount() {
 	rs.mux.Lock()
 	rs.PollCount = 0
 	rs.mux.Unlock()
 }
 
+// AsMapOfMetrics - the method to convert metrics into metric array.
 func (rs *Stats) AsMapOfMetrics(metrics ...string) ([]*Metric, error) {
 	if rs == nil {
 		return nil, errors.New("failed to read metrics for nil pointer")

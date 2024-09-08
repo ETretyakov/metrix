@@ -1,3 +1,4 @@
+// Module "app" is the entrypoint for the HTTP serive.
 package app
 
 import (
@@ -13,12 +14,12 @@ import (
 	"metrix/internal/handlers"
 	"metrix/internal/http"
 	"metrix/internal/repository"
-	"metrix/internal/storages"
 	"metrix/pkg/logger"
 
 	"github.com/jmoiron/sqlx"
 )
 
+// Run - launches web-server for metrics aggregation.
 func Run(ctx context.Context, cfg *config.Config) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -30,11 +31,9 @@ func Run(ctx context.Context, cfg *config.Config) (err error) {
 		}
 	}
 
-	retriableDB := storages.NewSQLDB(db)
-
 	repoGroup := repository.NewGroup(
 		ctx,
-		retriableDB,
+		db,
 		cfg.FileStoragePath,
 		cfg.StoreInterval,
 		cfg.Restore,

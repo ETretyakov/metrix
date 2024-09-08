@@ -4,41 +4,50 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"metrix/internal/controllers"
 	"metrix/internal/repository"
 	"metrix/internal/validators"
 	"metrix/pkg/logger"
-	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 )
 
-var (
-	metricValidator = validators.NewMetricValidator()
+const (
+	parseErrMsg string = "failed to parse payload: %v"
 )
 
+// MetricsHandlers - the implementation structure for the MetricsHandlers that manages
+// access to the related controller.
 type MetricsHandlers struct {
 	controller controllers.MetricsController
+	validator  validators.MetricsValidator
 }
 
+// NewMetricsHandlers - the builder function for the MetricsHandlers.
 func NewMetricsHandlers(repoGroup *repository.Group) *MetricsHandlers {
-	controller := controllers.NewMetricController(repoGroup)
-	return &MetricsHandlers{controller: controller}
+	return &MetricsHandlers{
+		controller: controllers.NewMetricController(repoGroup),
+		validator:  validators.NewMetricsValidator(),
+	}
 }
 
+// Set - the handler method that incapsulates validation logic for setting metrics
+// values functionality.
 func (h *MetricsHandlers) Set(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
 
-	metricIn, err := metricValidator.FromVars(vars)
+	metricIn, err := h.validator.FromVars(vars)
 	if err != nil {
 		var parsingValueError validators.ParsingValueError
 		if errors.As(err, &parsingValueError) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		logger.Warn(ctx, fmt.Sprintf("failed to parse payload: %v", err))
+		logger.Warn(ctx, fmt.Sprintf(parseErrMsg, err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -50,22 +59,27 @@ func (h *MetricsHandlers) Set(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(metric.GetValue()))
+	_, err = w.Write([]byte(metric.GetValue()))
+	if err != nil {
+		logger.Error(ctx, "failed to trigger controller", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
+// SetWithModel - the handler method that incapsulates validation logic for setting metrics
+// values functionality in batching mode with dedicated model.
 func (h *MetricsHandlers) SetWithModel(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	ctx := r.Context()
-	metricIn, err := metricValidator.FromBody(r.Body)
+	metricIn, err := h.validator.FromBody(r.Body)
 	if err != nil {
 		var parsingValueError validators.ParsingValueError
 		if errors.As(err, &parsingValueError) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		logger.Warn(ctx, fmt.Sprintf("failed to parse payload: %v", err))
+		logger.Warn(ctx, fmt.Sprintf(parseErrMsg, err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -99,18 +113,20 @@ func (h *MetricsHandlers) SetWithModel(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// SetMany - the handler method that incapsulates validation logic for setting metrics
+// values functionality in batching mode.
 func (h *MetricsHandlers) SetMany(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	ctx := r.Context()
-	metricsIn, err := metricValidator.ManyFromBody(r.Body)
+	metricsIn, err := h.validator.ManyFromBody(r.Body)
 	if err != nil {
 		var parsingValueError validators.ParsingValueError
 		if errors.As(err, &parsingValueError) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		logger.Warn(ctx, fmt.Sprintf("failed to parse payload: %v", err))
+		logger.Warn(ctx, fmt.Sprintf(parseErrMsg, err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -136,6 +152,7 @@ func (h *MetricsHandlers) SetMany(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// Get - the handler method that incapsulates validation logic for getting metrics.
 func (h *MetricsHandlers) Get(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
@@ -157,23 +174,28 @@ func (h *MetricsHandlers) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(metric.GetValue()))
+	_, err = w.Write([]byte(metric.GetValue()))
+	if err != nil {
+		logger.Error(ctx, "failed to trigger controller", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
+// GetWithModel - the handler method that incapsulates validation logic for getting
+// metrics with dedicated model.
 func (h *MetricsHandlers) GetWithModel(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	ctx := r.Context()
 
-	metricIn, err := metricValidator.FromBody(r.Body)
+	metricIn, err := h.validator.FromBody(r.Body)
 	if err != nil {
 		var parsingValueError validators.ParsingValueError
 		if errors.As(err, &parsingValueError) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		logger.Warn(ctx, fmt.Sprintf("failed to parse payload: %v", err))
+		logger.Warn(ctx, fmt.Sprintf(parseErrMsg, err))
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -205,6 +227,7 @@ func (h *MetricsHandlers) GetWithModel(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// GetIDs - the handler method that incapsulates validation logic for getting metrics ids.
 func (h *MetricsHandlers) GetIDs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
@@ -221,6 +244,9 @@ func (h *MetricsHandlers) GetIDs(w http.ResponseWriter, r *http.Request) {
 		body = strings.Join(*ids, "\n")
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(body))
+	_, err = w.Write([]byte(body))
+	if err != nil {
+		logger.Error(ctx, "failed to trigger controller", err)
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

@@ -3,18 +3,21 @@ package monitoring
 import (
 	"context"
 	"fmt"
-	"metrix/pkg/agent/config"
-	"metrix/pkg/logger"
 	"strings"
 	"time"
+
+	"metrix/pkg/agent/config"
+	"metrix/pkg/logger"
 )
 
+// Watcher - the structure for watcher, it keeps necessary data to perform monitoring operations.
 type Watcher struct {
 	stats   *Stats
 	metrics *[]string
 	ch      chan struct{}
 }
 
+// NewWatcher - the builder function for Watcher.
 func NewWatcher(metrics []string) *Watcher {
 	return &Watcher{
 		stats:   NewStats(),
@@ -83,6 +86,7 @@ func (w Watcher) worker(ctx context.Context, id int, c *Client) {
 	}
 }
 
+// Run - the method to start watcher.
 func (w Watcher) Run(
 	ctx context.Context,
 	cfg *config.Config,

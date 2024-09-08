@@ -3,19 +3,25 @@ package controllers
 import (
 	"context"
 	"fmt"
+
 	"metrix/internal/model"
 	"metrix/internal/repository"
 	"metrix/pkg/logger"
 )
 
+// MetricControllerImpl - implementation structure for the MetricControllerImpl that manages
+// access to the repositories and mutexes.
 type MetricControllerImpl struct {
 	repoGroup *repository.Group
 }
 
+// NewMetricController - the builder function for the MetricControllerImpl.
 func NewMetricController(repoGroup *repository.Group) *MetricControllerImpl {
 	return &MetricControllerImpl{repoGroup: repoGroup}
 }
 
+// Set - the controller method that incapsulates buisiness logic for setting metrics
+// values functionality.
 func (m *MetricControllerImpl) Set(
 	ctx context.Context,
 	metricIn *model.Metric,
@@ -44,6 +50,8 @@ func (m *MetricControllerImpl) Set(
 	return metric, nil
 }
 
+// SetMany - the controller method that incapsulates buisiness logic for setting metrics
+// values functionality in batching mode.
 func (m *MetricControllerImpl) SetMany(
 	ctx context.Context,
 	metricsIn []*model.Metric,
@@ -95,6 +103,7 @@ func (m *MetricControllerImpl) SetMany(
 	return status, nil
 }
 
+// Get - the controller method that incapsulates buisiness logic for getting metrics.
 func (m *MetricControllerImpl) Get(
 	ctx context.Context,
 	metricID string,
@@ -108,6 +117,7 @@ func (m *MetricControllerImpl) Get(
 	return metric, nil
 }
 
+// GetIDs - the controller method that incapsulates buisiness logic for getting metrics ids.
 func (m *MetricControllerImpl) GetIDs(ctx context.Context) (*[]string, error) {
 	ids, err := m.repoGroup.MetricRepo.ReadIDs(ctx)
 	if err != nil {
