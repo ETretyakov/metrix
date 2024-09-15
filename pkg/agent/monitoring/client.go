@@ -109,7 +109,6 @@ func (c Client) sendMetricBatch(
 			return errors.Wrap(err, "failed to encrypt body")
 		}
 	} else {
-		body = payload
 		body = buf.Bytes()
 	}
 
