@@ -23,6 +23,7 @@ type Config struct {
 	RetryCount       int64         `env:"RETRY_COUNT"          envDefault:"3"`
 	RetryWaitTime    time.Duration `env:"RETRY_WAIT_TIME"      envDefault:"1s"`
 	RetryMaxWaitTime time.Duration `env:"RETRY_MAX_WAIT_TIME"  envDefault:"5s"`
+	CryptoKey        string        `env:"CRYPTO_KEY"                                       flag:"crypto-key"       flagShort:"c" flagDescription:"crypto key"`
 }
 
 // NewConfig - the builder function for Config.

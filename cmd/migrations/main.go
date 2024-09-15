@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -54,8 +53,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("goose: failed to open DB: %v\n", err)
 	}
-
-	fmt.Printf("db: %+v\n", db)
 
 	defer func() {
 		if err := db.Close(); err != nil {
