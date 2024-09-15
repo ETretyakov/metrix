@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v6"
+	"github.com/pkg/errors"
 )
 
 // AppMode - the string-based type that defines running mode for the service,
@@ -44,7 +45,8 @@ type Config struct {
 	LogFile         string   `env:"LOG_FILE"          envDefault:"logs/logs.jsonl" flag:"log_file"          flagShort:"w" flagDescription:"filepath for logs"`
 	Postgres        Postgres `envPrefix:"DATABASE_"                                flag:"pg_dsn"            flagShort:"d" flagDescription:"database dsn"`
 	SignKey         string   `env:"KEY"                                            flag:"sign_key"          flagShort:"k" flagDescription:"a key using for signing"`
-	CryptoKey       string   `env:"CRYPTO_KEY"                                     flag:"crypto-key"        flagShort:"c" flagDescription:"crypto key"`
+	CryptoKey       string   `env:"CRYPTO_KEY"                                     flag:"crypto-key"        flagShort:"i" flagDescription:"crypto key"`
+	ConfigFile      string   `env:"CONFIG"`
 }
 
 // NewConfig - the builder function for new configuration.
@@ -56,6 +58,12 @@ func NewConfig() (*Config, error) {
 	}
 
 	parseFlags(cfg)
+
+	if cfg.ConfigFile != "" {
+		if err := readFromFile(cfg.ConfigFile, cfg); err != nil {
+			return nil, errors.Wrap(err, "failed to read from file")
+		}
+	}
 
 	return cfg, nil
 }
