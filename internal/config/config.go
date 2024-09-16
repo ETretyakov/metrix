@@ -44,6 +44,7 @@ type Config struct {
 	LogFile         string   `env:"LOG_FILE"          envDefault:"logs/logs.jsonl" flag:"log_file"          flagShort:"w" flagDescription:"filepath for logs"`
 	Postgres        Postgres `envPrefix:"DATABASE_"                                flag:"pg_dsn"            flagShort:"d" flagDescription:"database dsn"`
 	SignKey         string   `env:"KEY"                                            flag:"sign_key"          flagShort:"k" flagDescription:"a key using for signing"`
+	CryptoKey       string   `env:"CRYPTO_KEY"                                     flag:"crypto-key"        flagShort:"c" flagDescription:"crypto key"`
 }
 
 // NewConfig - the builder function for new configuration.

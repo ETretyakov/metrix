@@ -2,8 +2,11 @@
 package middlewares
 
 import (
+	"bytes"
 	"compress/gzip"
+	"context"
 	"io"
+	"metrix/pkg/logger"
 	"net/http"
 	"strings"
 
@@ -52,45 +55,6 @@ func (c *compressWriter) Close() error {
 	return nil
 }
 
-type compressReader struct {
-	r  io.ReadCloser
-	zr *gzip.Reader
-}
-
-func newCompressReader(r io.ReadCloser) (*compressReader, error) {
-	zr, err := gzip.NewReader(r)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to create reader")
-	}
-
-	return &compressReader{
-		r:  r,
-		zr: zr,
-	}, nil
-}
-
-// Read - the function that reads compressed data.
-func (c compressReader) Read(p []byte) (n int, err error) {
-	if n, err := c.zr.Read(p); err != nil {
-		return 0, errors.Wrapf(err, "failed to read")
-	} else {
-		return n, nil
-	}
-}
-
-// Close - the function that closes the reader of compressed data.
-func (c *compressReader) Close() error {
-	if err := c.r.Close(); err != nil {
-		return errors.Wrapf(err, "fialed to close compress reader")
-	}
-
-	if err := c.zr.Close(); err != nil {
-		return errors.Wrapf(err, "fialed to close compress reader")
-	}
-
-	return nil
-}
-
 // GzipMiddleware - the middleware function that enables compression for http communicztion.
 func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -103,6 +67,7 @@ func GzipMiddleware(next http.Handler) http.Handler {
 			ow = cw
 			defer func() {
 				if err := cw.Close(); err != nil {
+					logger.Error(context.TODO(), "failed to close compress writer", err)
 					return
 				}
 			}()
@@ -112,17 +77,25 @@ func GzipMiddleware(next http.Handler) http.Handler {
 		contentEncoding := r.Header.Get("Content-Encoding")
 		sendsGzip := strings.Contains(contentEncoding, "gzip")
 		if sendsGzip {
-			cr, err := newCompressReader(r.Body)
+			reader, err := gzip.NewReader(r.Body)
 			if err != nil {
+				logger.Error(context.TODO(), "failed to get compress reader", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			r.Body = cr
 			defer func() {
-				if err := cr.Close(); err != nil {
-					return
+				if err := reader.Close(); err != nil {
+					logger.Error(context.TODO(), "failed to close reader", err)
 				}
 			}()
+
+			decompressed, err := io.ReadAll(reader)
+			if err != nil {
+				logger.Error(context.TODO(), "failed to decompress", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			r.Body = io.NopCloser(bytes.NewBuffer(decompressed))
 		}
 
 		next.ServeHTTP(ow, r)

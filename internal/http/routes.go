@@ -34,6 +34,7 @@ func (s *Server) setupRoutes() *mux.Router {
 
 	m.Use(middlewares.LoggingMiddleware)
 	m.Use(middlewares.SignatureMiddleware)
+	m.Use(middlewares.DecryptionMiddleware)
 	m.Use(middlewares.GzipMiddleware)
 
 	// pprof

@@ -7,22 +7,25 @@ import (
 	"time"
 
 	"metrix/pkg/agent/config"
+	"metrix/pkg/crypto"
 	"metrix/pkg/logger"
 )
 
 // Watcher - the structure for watcher, it keeps necessary data to perform monitoring operations.
 type Watcher struct {
-	stats   *Stats
-	metrics *[]string
-	ch      chan struct{}
+	stats      *Stats
+	metrics    *[]string
+	encryption *crypto.Encryption
+	ch         chan struct{}
 }
 
 // NewWatcher - the builder function for Watcher.
-func NewWatcher(metrics []string) *Watcher {
+func NewWatcher(metrics []string, encryption *crypto.Encryption) *Watcher {
 	return &Watcher{
-		stats:   NewStats(),
-		metrics: &metrics,
-		ch:      make(chan struct{}),
+		stats:      NewStats(),
+		metrics:    &metrics,
+		encryption: encryption,
+		ch:         make(chan struct{}),
 	}
 }
 
@@ -104,6 +107,7 @@ func (w Watcher) Run(
 		int(cfg.RetryCount),
 		cfg.RetryWaitTime,
 		cfg.RetryMaxWaitTime,
+		w.encryption,
 	)
 
 	for i := 1; i <= int(cfg.Goroutines); i++ {
