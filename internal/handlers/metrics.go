@@ -120,7 +120,6 @@ func (h *MetricsHandlers) SetMany(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	metricsIn, err := h.validator.ManyFromBody(r.Body)
-	fmt.Println(">>>> handler", metricsIn)
 	if err != nil {
 		var parsingValueError validators.ParsingValueError
 		if errors.As(err, &parsingValueError) {

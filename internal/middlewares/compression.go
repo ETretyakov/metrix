@@ -4,7 +4,6 @@ package middlewares
 import (
 	"bytes"
 	"compress/gzip"
-	"context"
 	"io"
 	"metrix/pkg/logger"
 	"net/http"
@@ -67,7 +66,7 @@ func GzipMiddleware(next http.Handler) http.Handler {
 			ow = cw
 			defer func() {
 				if err := cw.Close(); err != nil {
-					logger.Error(context.TODO(), "failed to close compress writer", err)
+					logger.Error(r.Context(), "failed to close compress writer", err)
 					return
 				}
 			}()
@@ -79,19 +78,19 @@ func GzipMiddleware(next http.Handler) http.Handler {
 		if sendsGzip {
 			reader, err := gzip.NewReader(r.Body)
 			if err != nil {
-				logger.Error(context.TODO(), "failed to get compress reader", err)
+				logger.Error(r.Context(), "failed to get compress reader", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 			defer func() {
 				if err := reader.Close(); err != nil {
-					logger.Error(context.TODO(), "failed to close reader", err)
+					logger.Error(r.Context(), "failed to close reader", err)
 				}
 			}()
 
 			decompressed, err := io.ReadAll(reader)
 			if err != nil {
-				logger.Error(context.TODO(), "failed to decompress", err)
+				logger.Error(r.Context(), "failed to decompress", err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}

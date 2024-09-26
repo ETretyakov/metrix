@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/rsa"
-	"fmt"
 	"io"
 	"testing"
 )
@@ -97,8 +96,6 @@ func TestDecryption_Decrypt(t *testing.T) {
 			}
 
 			if !bytes.Equal(got, tt.want) {
-				fmt.Println("got: ", string(got))
-				fmt.Println("want: ", string(tt.want))
 				t.Errorf("Decryption.Decrypt() = %v, want %v", got, tt.want)
 			}
 		})

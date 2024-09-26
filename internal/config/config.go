@@ -53,17 +53,17 @@ type Config struct {
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
-	if err := env.Parse(cfg); err != nil {
-		return nil, fmt.Errorf("failed to parse server envs: %w", err)
-	}
-
-	parseFlags(cfg)
-
 	if cfg.ConfigFile != "" {
 		if err := readFromFile(cfg.ConfigFile, cfg); err != nil {
 			return nil, errors.Wrap(err, "failed to read from file")
 		}
 	}
+
+	if err := env.Parse(cfg); err != nil {
+		return nil, fmt.Errorf("failed to parse server envs: %w", err)
+	}
+
+	parseFlags(cfg)
 
 	return cfg, nil
 }

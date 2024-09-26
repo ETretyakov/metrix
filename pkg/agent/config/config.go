@@ -30,6 +30,13 @@ type Config struct {
 // NewConfig - the builder function for Config.
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
+
+	if cfg.ConfigFile != "" {
+		if err := readFromFile(cfg.ConfigFile, cfg); err != nil {
+			return nil, errors.Wrap(err, "failed to read from file")
+		}
+	}
+
 	if err := env.Parse(cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse agent envs: %w", err)
 	}
@@ -74,12 +81,6 @@ func NewConfig() (*Config, error) {
 	}
 
 	parseFlags(cfg)
-
-	if cfg.ConfigFile != "" {
-		if err := readFromFile(cfg.ConfigFile, cfg); err != nil {
-			return nil, errors.Wrap(err, "failed to read from file")
-		}
-	}
 
 	return cfg, nil
 }
