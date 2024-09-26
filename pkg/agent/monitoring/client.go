@@ -12,9 +12,11 @@ import (
 	"net/http"
 	"time"
 
+	"metrix/pkg/crypto"
 	"metrix/pkg/logger"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/pkg/errors"
 )
 
 // Client - the structure that describes metric client concept.
@@ -23,6 +25,7 @@ type Client struct {
 	baseURL     string
 	signKey     string
 	useBatching bool
+	encryption  *crypto.Encryption
 }
 
 // NewClient - the builder function for the Client.
@@ -34,12 +37,14 @@ func NewClient(
 	retryCount int,
 	retryWaitTime time.Duration,
 	retryMaxWaitTime time.Duration,
+	encryption *crypto.Encryption,
 ) *Client {
 	c := &Client{
 		client:      resty.New(),
 		baseURL:     baseURL,
 		signKey:     signKey,
 		useBatching: useBatching,
+		encryption:  encryption,
 	}
 
 	c.client.
@@ -69,7 +74,7 @@ func (c Client) checkBatching(ctx context.Context) (bool, error) {
 		SetContext(ctx).
 		SetBody(&buf).
 		Post(c.baseURL + "/updates/"); err != nil {
-		return false, fmt.Errorf("failed to request for batching support: %w", err)
+		return false, errors.Wrap(err, "failed to request for batching support")
 	} else if resp.StatusCode() == http.StatusNotFound {
 		return false, nil
 	}
@@ -81,42 +86,55 @@ func (c Client) sendMetricBatch(
 	ctx context.Context,
 	metrics []*Metric,
 ) error {
+	payload, err := json.Marshal(&metrics)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal payload")
+	}
+
 	var buf bytes.Buffer
 	writer := gzip.NewWriter(&buf)
 
-	payload, err := json.Marshal(&metrics)
-	if err != nil {
-		return fmt.Errorf("failed to marshal payload: %w", err)
+	if _, err = writer.Write(payload); err != nil {
+		return errors.Wrap(err, "failed to compress data")
 	}
 
-	_, err = writer.Write(payload)
-	if err != nil {
-		return fmt.Errorf("failed to compress data: %w", err)
+	if err := writer.Close(); err != nil {
+		return errors.Wrap(err, "failed to close writer")
 	}
 
-	err = writer.Close()
-	if err != nil {
-		return fmt.Errorf("failed to close writer: %w", err)
+	var body []byte
+	if c.encryption != nil {
+		body, err = c.encryption.Encrypt(buf.Bytes())
+		if err != nil {
+			return errors.Wrap(err, "failed to encrypt body")
+		}
+	} else {
+		body = buf.Bytes()
 	}
 
 	req := c.client.R().
 		SetContext(ctx).
-		SetBody(&buf)
+		SetBody(bytes.NewBuffer(body))
+
+	if c.encryption != nil {
+		req = req.SetHeader("x-encrypted", "true")
+	}
 
 	if c.signKey != "" {
 		h := hmac.New(sha256.New, []byte(c.signKey))
-		h.Write(buf.Bytes())
+		h.Write(body)
 		signature := h.Sum(nil)
 		req = req.SetHeader("HashSHA256", hex.EncodeToString(signature))
 	}
 
 	resp, err := req.Post(c.baseURL + "/updates/")
 	if err != nil {
-		return fmt.Errorf("failed to send metric: %w", err)
+		return errors.Wrap(err, "failed to send metric")
 	}
 
 	if resp.IsError() {
-		return fmt.Errorf(
+		return errors.Wrapf(
+			err,
 			"failed  to send metric (with signature): status=%s body=%s",
 			resp.Status(),
 			resp.Body(),
@@ -136,38 +154,52 @@ func (c Client) sendMetric(
 	metrics []*Metric,
 ) error {
 	for _, metric := range metrics {
+		payload, err := json.Marshal(&metric)
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal payload")
+		}
+
 		var buf bytes.Buffer
 		writer := gzip.NewWriter(&buf)
 
-		payload, err := json.Marshal(&metric)
-		if err != nil {
-			return fmt.Errorf("failed to marshal payload: %w", err)
-		}
-
 		_, err = writer.Write(payload)
 		if err != nil {
-			return fmt.Errorf("failed to compress payload: %w", err)
+			return errors.Wrap(err, "failed to compress payload")
 		}
 
 		err = writer.Close()
 		if err != nil {
-			return fmt.Errorf("failed to close writer: %w", err)
+			return errors.Wrap(err, "failed to close writer")
+		}
+
+		var body []byte
+		if c.encryption != nil {
+			body, err = c.encryption.Encrypt(buf.Bytes())
+			if err != nil {
+				return errors.Wrap(err, "failed to encrypt body")
+			}
+		} else {
+			body = buf.Bytes()
 		}
 
 		req := c.client.R().
 			SetContext(ctx).
-			SetBody(&buf)
+			SetBody(bytes.NewBuffer(body))
+
+		if c.encryption != nil {
+			req = req.SetHeader("x-encrypted", "true")
+		}
 
 		if c.signKey != "" {
 			h := hmac.New(sha256.New, []byte(c.signKey))
-			h.Write(buf.Bytes())
+			h.Write(body)
 			signature := h.Sum(nil)
 			req = req.SetHeader("HashSHA256", hex.EncodeToString(signature))
 		}
 
 		resp, err := req.Post(c.baseURL + "/update/")
 		if err != nil {
-			return fmt.Errorf("failed to send metric: %w", err)
+			return errors.Wrap(err, "failed to send metric")
 		}
 
 		if resp.IsError() {
@@ -192,12 +224,12 @@ func (c Client) SendMetrics(ctx context.Context, metrics []*Metric) error {
 	if c.useBatching {
 		err := c.sendMetricBatch(ctx, metrics)
 		if err != nil {
-			return fmt.Errorf("failed to send batch metrics: %w", err)
+			return errors.Wrap(err, "failed to send batch metrics")
 		}
 	} else {
 		err := c.sendMetric(ctx, metrics)
 		if err != nil {
-			return fmt.Errorf("failed to send metrics: %w", err)
+			return errors.Wrap(err, "failed to send metrics")
 		}
 	}
 

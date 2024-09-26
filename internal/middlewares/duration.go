@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"context"
 	"net/http"
 	"time"
 
@@ -55,7 +54,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		logger.Info(
-			context.TODO(),
+			r.Context(),
 			"got incoming request",
 			"url", r.URL,
 			"method", r.Method,

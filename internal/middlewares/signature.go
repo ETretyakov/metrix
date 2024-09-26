@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"bytes"
-	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -29,7 +28,7 @@ func SignatureMiddleware(next http.Handler) http.Handler {
 			bodyBytes, err := io.ReadAll(r.Body)
 			if err != nil {
 				logger.Warn(
-					context.TODO(),
+					r.Context(),
 					"failed to read body for checking signature",
 					"url", r.URL,
 					"method", r.Method,
@@ -49,7 +48,7 @@ func SignatureMiddleware(next http.Handler) http.Handler {
 
 			if signature != hashSum {
 				logger.Warn(
-					context.TODO(),
+					r.Context(),
 					fmt.Sprintf(
 						"wrong signature calc=%s got=%s",
 						signature,

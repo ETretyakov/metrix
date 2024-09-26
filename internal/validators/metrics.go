@@ -110,7 +110,7 @@ func (v *MetricsValidatorImpl) FromBody(body io.ReadCloser) (*model.Metric, erro
 	return metric, nil
 }
 
-// FromBody - the function that parses many metric structures from reader.
+// ManyFromBody - the function that parses many metric structures from reader.
 func (v *MetricsValidatorImpl) ManyFromBody(body io.ReadCloser) ([]*model.Metric, error) {
 	metrics := []*model.Metric{}
 
