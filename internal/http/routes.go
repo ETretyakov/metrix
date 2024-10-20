@@ -32,6 +32,7 @@ func (s *Server) setupRoutes() *mux.Router {
 		Methods(http.MethodPost).
 		Headers("Content-Type", "application/json")
 
+	m.Use(middlewares.SubnetMiddleware)
 	m.Use(middlewares.LoggingMiddleware)
 	m.Use(middlewares.SignatureMiddleware)
 	m.Use(middlewares.DecryptionMiddleware)

@@ -52,6 +52,7 @@ func main() {
 	}
 
 	middlewares.SetSignKey(cfg.SignKey)
+	middlewares.InitSubnetMiddleware(cfg.TrustedSubNetDefined)
 
 	if err := app.Run(ctx, cfg); err != nil {
 		logger.Error(ctx, "error running http server", err)
