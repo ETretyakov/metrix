@@ -12,11 +12,14 @@ import (
 	"net/http"
 	"time"
 
+	pb "metrix/internal/grpcapi/proto/v1"
 	"metrix/pkg/crypto"
 	"metrix/pkg/logger"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // Client - the structure that describes metric client concept.
@@ -220,7 +223,7 @@ func (c Client) sendMetric(
 }
 
 // SendMetrics - the method for sending metrics via metric client.
-func (c Client) SendMetrics(ctx context.Context, metrics []*Metric) error {
+func (c *Client) SendMetrics(ctx context.Context, metrics []*Metric) error {
 	if c.useBatching {
 		err := c.sendMetricBatch(ctx, metrics)
 		if err != nil {
@@ -232,6 +235,61 @@ func (c Client) SendMetrics(ctx context.Context, metrics []*Metric) error {
 			return errors.Wrap(err, "failed to send metrics")
 		}
 	}
+
+	return nil
+}
+
+type GRPCClient struct {
+	conn   *grpc.ClientConn
+	client pb.MetricServiceClient
+}
+
+func NewGRPCClient(serverHost string) *GRPCClient {
+	conn, err := grpc.NewClient(serverHost, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		logger.Warn(context.Background(), fmt.Sprintf("failed to build client: %s", err))
+	}
+
+	client := pb.NewMetricServiceClient(conn)
+
+	return &GRPCClient{
+		conn:   conn,
+		client: client,
+	}
+}
+
+func (gc *GRPCClient) Close() {
+	if err := gc.conn.Close(); err != nil {
+		logger.Warn(context.Background(), fmt.Sprintf("failed to close client: %s", err))
+	}
+}
+
+func (gc *GRPCClient) SendMetrics(ctx context.Context, metrics []*Metric) error {
+	request := pb.MetricsRequest{}
+	for _, m := range metrics {
+		switch m.MType {
+		case "counter":
+			request.Items = append(request.Items, &pb.Metric{
+				Id:    m.ID,
+				Mtype: pb.Metric_COUNTER,
+				Value: float32(*m.Delta),
+			})
+		case "gauge":
+			request.Items = append(request.Items, &pb.Metric{
+				Id:    m.ID,
+				Mtype: pb.Metric_GAUGE,
+				Value: float32(*m.Value),
+			})
+		}
+	}
+
+	resp, err := gc.client.SetMetrics(ctx, &request)
+	if err != nil {
+		logger.Error(ctx, "failed to send metrics using GRPC", err)
+		return errors.Wrap(err, "failed to send metrics using GRPC")
+	}
+
+	logger.Info(ctx, fmt.Sprintf("grpc api response: %+v", resp))
 
 	return nil
 }

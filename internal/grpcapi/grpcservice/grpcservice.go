@@ -6,6 +6,7 @@ import (
 	pb "metrix/internal/grpcapi/proto/v1"
 	"metrix/internal/model"
 	"metrix/internal/repository"
+	"metrix/pkg/logger"
 	"net"
 
 	"github.com/pkg/errors"
@@ -23,17 +24,22 @@ func NewGServiceServer(metricsRepo repository.MetricRepository) *GServiceServer 
 	}
 }
 
-func (gs *GServiceServer) Start() error {
-	tcpListen, err := net.Listen("tcp", ":9090")
-	if err != nil {
-		return errors.Wrap(err, "failed to start listen tcp")
-	}
-
+func (gs *GServiceServer) Start(ctx context.Context) {
 	gServer := grpc.NewServer()
-	pb.RegisterMetricServiceServer(gServer, gs)
-	if err := gServer.Serve(tcpListen); err != nil {
-		return errors.Wrap(err, "failed to serve grpc server")
-	}
+
+	go func() {
+		logger.Info(ctx, "starting listening http srv at :9090")
+
+		tcpListen, err := net.Listen("tcp", ":9090")
+		if err != nil {
+			logger.Fatal(ctx, "failed to start listen tcp", err)
+		}
+
+		pb.RegisterMetricServiceServer(gServer, gs)
+		if err := gServer.Serve(tcpListen); err != nil {
+			logger.Fatal(ctx, "failed to serve grpc server", err)
+		}
+	}()
 
 	closer.Add(
 		func() error {
@@ -41,29 +47,27 @@ func (gs *GServiceServer) Start() error {
 			return nil
 		},
 	)
-
-	return nil
 }
 
-func (gs *GServiceServer) MetricsRequest(
+func (gs *GServiceServer) SetMetrics(
 	ctx context.Context,
 	in *pb.MetricsRequest,
 ) (*pb.MetricsResponse, error) {
 	metrics := []model.Metric{}
 
-	for _, m := range in.Items {
-		switch m.Mtype {
+	for _, m := range in.GetItems() {
+		switch m.GetMtype() {
 		case pb.Metric_COUNTER:
-			delta := int64(m.Value)
+			delta := int64(m.GetValue())
 			metrics = append(metrics, model.Metric{
-				ID:    m.Id,
+				ID:    m.GetId(),
 				MType: model.CounterType,
 				Delta: &delta,
 			})
 		case pb.Metric_GAUGE:
-			value := float64(m.Value)
+			value := float64(m.GetValue())
 			metrics = append(metrics, model.Metric{
-				ID:    m.Id,
+				ID:    m.GetId(),
 				MType: model.CounterType,
 				Value: &value,
 			})

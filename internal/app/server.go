@@ -18,7 +18,6 @@ import (
 	"metrix/pkg/logger"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
 )
 
 // Run - launches web-server for metrics aggregation.
@@ -59,10 +58,7 @@ func Run(ctx context.Context, cfg *config.Config) (err error) {
 
 	// GRPC Server
 	gs := grpcservice.NewGServiceServer(repoGroup.MetricRepo)
-	if err := gs.Start(); err != nil {
-		cancel()
-		return errors.Wrap(err, "failed to start grpc")
-	}
+	gs.Start(ctx)
 
 	gracefulShutDown(ctx, cancel)
 

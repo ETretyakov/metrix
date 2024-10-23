@@ -48,7 +48,8 @@ type Config struct {
 	SignKey              string   `env:"KEY"                                            flag:"sign_key"          flagShort:"k" flagDescription:"a key using for signing"`
 	CryptoKey            string   `env:"CRYPTO_KEY"                                     flag:"crypto-key"        flagShort:"i" flagDescription:"crypto key"`
 	ConfigFile           string   `env:"CONFIG"`
-	TrustedSubNet        string   `env:"TRUSTED_SUBNET"    envDefault:"192.168.1.0/24"   flag:"trusted-subnet"    flagShort:"t" flagDescription:"trusted subnet variable"`
+	TrustedSubNet        string   `env:"TRUSTED_SUBNET"    envDefault:"192.168.1.0/24"  flag:"trusted-subnet"   flagShort:"t"  flagDescription:"trusted subnet variable"`
+	GRPCAddress          string   `env:"GRPC_ADDRESS"      envDefault:"localhost:9090"  flag:"grpc-address"     flagShort:"g"  flagDescription:"grpc address"`
 	TrustedSubNetDefined *net.IPNet
 }
 
