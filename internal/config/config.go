@@ -39,7 +39,7 @@ type Postgres struct {
 type Config struct {
 	AppMode              AppMode  `env:"APP_MODE"          envDefault:"local"           flag:"mode"              flagShort:"m" flagDescription:"application mode"`
 	HTTPAddress          string   `env:"ADDRESS"           envDefault:"localhost:8080"  flag:"address"           flagShort:"a" flagDescription:"http address"`
-	StoreInterval        int64    `env:"STORE_INTERVAL"    envDefault:"300"             flag:"store_interval"    flagShort:"i" flagDescription:"interval for storage backup"`
+	StoreInterval        int64    `env:"STORE_INTERVAL"    envDefault:"300"             flag:"store_interval"    flagShort:"s" flagDescription:"interval for storage backup"`
 	FileStoragePath      string   `env:"FILE_STORAGE_PATH" envDefault:""                flag:"file_storage_path" flagShort:"f" flagDescription:"filepath storage backup"`
 	Restore              bool     `env:"RESTORE"           envDefault:"false"           flag:"restore"           flagShort:"r" flagDescription:"boolean to restore from backup"`
 	LogLevel             string   `env:"LOG_LEVEL"         envDefault:"info"            flag:"log_level"         flagShort:"l" flagDescription:"level for logging"`
