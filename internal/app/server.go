@@ -58,7 +58,7 @@ func Run(ctx context.Context, cfg *config.Config) (err error) {
 
 	// GRPC Server
 	gs := grpcservice.NewGServiceServer(repoGroup.MetricRepo)
-	gs.Start(ctx)
+	gs.Start(ctx, cfg.GRPCAddress, cfg.TrustedSubNetDefined)
 
 	gracefulShutDown(ctx, cancel)
 
