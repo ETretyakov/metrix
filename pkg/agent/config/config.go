@@ -2,12 +2,12 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"slices"
 	"time"
 
 	"github.com/caarlos0/env"
+	"github.com/pkg/errors"
 )
 
 // Config - the structure that keeps main agent config.
@@ -23,11 +23,20 @@ type Config struct {
 	RetryCount       int64         `env:"RETRY_COUNT"          envDefault:"3"`
 	RetryWaitTime    time.Duration `env:"RETRY_WAIT_TIME"      envDefault:"1s"`
 	RetryMaxWaitTime time.Duration `env:"RETRY_MAX_WAIT_TIME"  envDefault:"5s"`
+	CryptoKey        string        `env:"CRYPTO_KEY"                                       flag:"crypto-key"       flagShort:"i" flagDescription:"crypto key"`
+	ConfigFile       string        `env:"CONFIG"`
 }
 
 // NewConfig - the builder function for Config.
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
+
+	if cfg.ConfigFile != "" {
+		if err := readFromFile(cfg.ConfigFile, cfg); err != nil {
+			return nil, errors.Wrap(err, "failed to read from file")
+		}
+	}
+
 	if err := env.Parse(cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse agent envs: %w", err)
 	}

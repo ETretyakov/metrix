@@ -37,6 +37,7 @@ func main() {
 	cfg, err := config.NewConfig()
 	if err != nil {
 		logger.Error(ctx, "failed to read config", err)
+		return
 	}
 
 	logger.InitDefault(cfg.LogLevel)
@@ -44,6 +45,11 @@ func main() {
 	logger.Info(ctx, "Build version: "+buildVersion)
 	logger.Info(ctx, "Build data: "+buildData)
 	logger.Info(ctx, "Build commit: "+buildCommit)
+
+	if err := middlewares.InitDecryption(cfg.CryptoKey); err != nil {
+		logger.Error(ctx, "failed to init encryption", err)
+		return
+	}
 
 	middlewares.SetSignKey(cfg.SignKey)
 

@@ -8,6 +8,7 @@ import (
 
 	"metrix/pkg/agent/config"
 	"metrix/pkg/agent/monitoring"
+	"metrix/pkg/crypto"
 	"metrix/pkg/logger"
 )
 
@@ -22,10 +23,17 @@ func main() {
 	cfg, err := config.NewConfig()
 	if err != nil {
 		logger.Error(ctx, "failed to read config", err)
+		return
 	}
 
 	logger.InitDefault(cfg.LogLevel)
 
-	watcher := monitoring.NewWatcher(cfg.Metrics)
+	encryption, err := crypto.NewEncryption(cfg.CryptoKey)
+	if err != nil {
+		logger.Error(ctx, "failed to init encryption", err)
+		return
+	}
+
+	watcher := monitoring.NewWatcher(cfg.Metrics, encryption)
 	watcher.Run(ctx, cfg)
 }

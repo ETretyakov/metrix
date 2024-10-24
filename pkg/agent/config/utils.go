@@ -3,7 +3,9 @@ package config
 import (
 	"reflect"
 
+	"github.com/pkg/errors"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 func isFlagPassed(name string) bool {
@@ -111,4 +113,23 @@ func parseFlags(cfg *Config) {
 				SetBool(*v)
 		}
 	}
+}
+
+func readFromFile(filePath string, cfg *Config) error {
+	viper.AddConfigPath(filePath)
+	viper.SetConfigType("json")
+
+	viper.AutomaticEnv()
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		return errors.Wrap(err, "failed to read config")
+	}
+
+	err = viper.Unmarshal(&cfg)
+	if err != nil {
+		return errors.Wrap(err, "failed to unmarshal")
+	}
+
+	return nil
 }
