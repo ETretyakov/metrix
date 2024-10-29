@@ -23,8 +23,9 @@ type Config struct {
 	RetryCount       int64         `env:"RETRY_COUNT"          envDefault:"3"`
 	RetryWaitTime    time.Duration `env:"RETRY_WAIT_TIME"      envDefault:"1s"`
 	RetryMaxWaitTime time.Duration `env:"RETRY_MAX_WAIT_TIME"  envDefault:"5s"`
-	CryptoKey        string        `env:"CRYPTO_KEY"                                       flag:"crypto-key"       flagShort:"i" flagDescription:"crypto key"`
+	CryptoKey        string        `env:"CRYPTO_KEY"                                       flag:"crypto-key"      flagShort:"i" flagDescription:"crypto key"`
 	ConfigFile       string        `env:"CONFIG"`
+	GRPCAddress      string        `env:"GRPC_ADDRESS"         envDefault:""               flag:"grpc-address"    flagShort:"g"  flagDescription:"grpc address"`
 }
 
 // NewConfig - the builder function for Config.

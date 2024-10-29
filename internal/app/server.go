@@ -11,6 +11,7 @@ import (
 	"metrix/internal/bootstrap"
 	"metrix/internal/closer"
 	"metrix/internal/config"
+	"metrix/internal/grpcapi/grpcservice"
 	"metrix/internal/handlers"
 	"metrix/internal/http"
 	"metrix/internal/repository"
@@ -23,6 +24,7 @@ import (
 func Run(ctx context.Context, cfg *config.Config) (err error) {
 	ctx, cancel := context.WithCancel(ctx)
 
+	// Database setup
 	var db *sqlx.DB
 	if cfg.Postgres.DSN != "" {
 		db, err = bootstrap.InitDB(ctx, &cfg.Postgres)
@@ -39,6 +41,7 @@ func Run(ctx context.Context, cfg *config.Config) (err error) {
 		cfg.Restore,
 	)
 
+	// HTTP server
 	healthHandlers := handlers.NewHealthHandlers(repoGroup)
 	metricsHandlers := handlers.NewMetricsHandlers(repoGroup)
 
@@ -52,6 +55,10 @@ func Run(ctx context.Context, cfg *config.Config) (err error) {
 
 	healthHandlers.SetLiveness(true)
 	healthHandlers.SetReadiness(true)
+
+	// GRPC Server
+	gs := grpcservice.NewGServiceServer(repoGroup.MetricRepo)
+	gs.Start(ctx, cfg.GRPCAddress, cfg.TrustedSubNetDefined)
 
 	gracefulShutDown(ctx, cancel)
 

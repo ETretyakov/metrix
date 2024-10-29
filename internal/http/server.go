@@ -58,7 +58,7 @@ func (s *Server) Close() error {
 	ctx := context.TODO()
 	if err := s.srv.Shutdown(ctx); err != nil {
 		logger.Error(ctx, "error stop http srv, err", err)
-		return errors.Wrapf(err, "close server error")
+		return errors.Wrap(err, "close server error")
 	}
 
 	logger.Info(ctx, "http server shutdown done")

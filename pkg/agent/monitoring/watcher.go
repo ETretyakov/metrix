@@ -11,6 +11,10 @@ import (
 	"metrix/pkg/logger"
 )
 
+type MetricsClient interface {
+	SendMetrics(ctx context.Context, metrics []*Metric) error
+}
+
 // Watcher - the structure for watcher, it keeps necessary data to perform monitoring operations.
 type Watcher struct {
 	stats      *Stats
@@ -60,7 +64,7 @@ func (w Watcher) report(ctx context.Context, interval time.Duration) {
 	}
 }
 
-func (w Watcher) worker(ctx context.Context, id int, c *Client) {
+func (w Watcher) worker(ctx context.Context, id int, c MetricsClient) {
 	logger.Info(ctx, fmt.Sprintf("Worker №%d has been started", id))
 
 	for {
@@ -94,24 +98,32 @@ func (w Watcher) Run(
 	ctx context.Context,
 	cfg *config.Config,
 ) {
-	address := cfg.Address
-	if !strings.HasPrefix(address, "http") {
-		address = "http://" + address
-	}
+	if cfg.GRPCAddress != "" {
+		client := NewGRPCClient(cfg.GRPCAddress)
 
-	client := NewClient(
-		ctx,
-		address,
-		cfg.SignKey,
-		cfg.UseBatching,
-		int(cfg.RetryCount),
-		cfg.RetryWaitTime,
-		cfg.RetryMaxWaitTime,
-		w.encryption,
-	)
+		for i := 1; i <= int(cfg.Goroutines); i++ {
+			go w.worker(ctx, i, client)
+		}
+	} else {
+		address := cfg.Address
+		if !strings.HasPrefix(address, "http") {
+			address = "http://" + address
+		}
 
-	for i := 1; i <= int(cfg.Goroutines); i++ {
-		go w.worker(ctx, i, client)
+		client := NewClient(
+			ctx,
+			address,
+			cfg.SignKey,
+			cfg.UseBatching,
+			int(cfg.RetryCount),
+			cfg.RetryWaitTime,
+			cfg.RetryMaxWaitTime,
+			w.encryption,
+		)
+
+		for i := 1; i <= int(cfg.Goroutines); i++ {
+			go w.worker(ctx, i, client)
+		}
 	}
 
 	go w.watch(ctx, time.Duration(cfg.PollInterval*int64(time.Second)))

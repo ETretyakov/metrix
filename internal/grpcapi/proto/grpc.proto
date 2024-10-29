@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package grpcapi.metrics.v1;
+
+option go_package = "github.com/ETretyakov/metrix/internal/grpcapi/metrics/v1;metrics";
+
+service MetricService {
+    rpc SetMetrics(MetricsRequest) returns (MetricsResponse);
+}
+
+message MetricsRequest {
+    repeated Metric items = 1;
+}
+
+message Metric {
+    string id = 1;
+    enum Type {
+        COUNTER = 0;
+        GAUGE = 1;
+    };
+    Type mtype = 2;
+    float value = 3;
+}
+
+message MetricsResponse {
+    bool status = 1;
+    string message = 2;
+}
